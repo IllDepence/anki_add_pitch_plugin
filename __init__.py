@@ -36,11 +36,11 @@ def add_pitch_dialog():
     # figure out collection structure
     deck_id = pa_util.select_deck_id('Which deck would you like to extend?')
     note_ids = pa_util.get_note_ids(deck_id)
-    expr_idx, reading_idx = pa_util.select_note_fields(note_ids[0])
+    expr_idx, rdng_idx, out_idx = pa_util.select_note_fields_all(note_ids[0])
 
     # extend notes
     nf_lst, n_updt, n_adone, n_sfail = pa_util.add_pitch(
-        acc_dict, plugin_dir_name, note_ids, expr_idx, reading_idx
+        acc_dict, plugin_dir_name, note_ids, expr_idx, rdng_idx, out_idx
         )
     showInfo(('done :)\n'
         'skipped {} already annotated notes\n'
@@ -68,10 +68,10 @@ def remove_pitch_dialog():
         'From which deck would you like to remove?'
         )
     note_ids = pa_util.get_note_ids(deck_id)
-    expr_idx, reading_idx = pa_util.select_note_fields(note_ids[0])
+    del_idx = pa_util.select_note_fields_del(note_ids[0])
 
     # remove from notes
-    n_adone, n_updt  = pa_util.remove_pitch(note_ids, expr_idx, reading_idx)
+    n_adone, n_updt  = pa_util.remove_pitch(note_ids, del_idx)
     showInfo(('done :)\n'
         'skipped {} notes w/o accent annotation\n'
         'updated {} notes').format(

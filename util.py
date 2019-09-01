@@ -52,7 +52,7 @@ def get_note_ids(deck_id):
         note_ids.append(nid)
     return note_ids
 
-def select_note_fields(note_id):
+def select_note_fields_all(note_id):
     example_row = mw.col.db.first(
         'SELECT flds FROM notes WHERE id = :nid', nid=note_id)
     example_flds = example_row[0].split('\x1f')
@@ -63,7 +63,20 @@ def select_note_fields(note_id):
     reading_idx = chooseList(
         'Which field contains the reading?', choices
         )
-    return expr_idx, reading_idx
+    output_idx = chooseList(
+        'Which field should the pitch accent be shown in?', choices
+        )
+    return expr_idx, reading_idx, output_idx
+
+def select_note_fields_del(note_id):
+    example_row = mw.col.db.first(
+        'SELECT flds FROM notes WHERE id = :nid', nid=note_id)
+    example_flds = example_row[0].split('\x1f')
+    choices = [fld[:20] for fld in example_flds if len(fld) > 0]
+    del_idx = chooseList(
+        'Which field should the pitch accent be removed from?', choices
+        )
+    return del_idx
 
 def get_acc_patt(expr_field, reading_field, dicts):
     def select_best_patt(reading_field, patts):
@@ -96,7 +109,8 @@ def get_acc_patt(expr_field, reading_field, dicts):
             return select_best_patt(reading_field, patts)
     return False
 
-def add_pitch(acc_dict, plugin_dir_name, note_ids, expr_idx, reading_idx):
+def add_pitch(acc_dict, plugin_dir_name, note_ids, expr_idx, reading_idx,
+              output_idx):
     draw_pitch = __import__(
         '{}.draw_pitch'.format(plugin_dir_name), fromlist=('foo')
         )
@@ -126,9 +140,9 @@ def add_pitch(acc_dict, plugin_dir_name, note_ids, expr_idx, reading_idx):
         if not svg:
             num_svg_fail += 1
             continue
-        fields[reading_idx] = (
+        fields[output_idx] = (
             '{}<!-- accent_start --><br><hr><br>{}<!-- accent_end -->'
-            ).format(fields[reading_idx], svg)  # add svg
+            ).format(fields[output_idx], svg)  # add svg
         new_flds_str = '\x1f'.join(fields)
         mod_time = int(time.time())
         mw.col.db.execute(
@@ -138,19 +152,19 @@ def add_pitch(acc_dict, plugin_dir_name, note_ids, expr_idx, reading_idx):
         num_updated += 1
     return not_found_list, num_updated, num_already_done, num_svg_fail
 
-def remove_pitch(note_ids, expr_idx, reading_idx):
+def remove_pitch(note_ids, del_idx):
     acc_patt = re.compile(r'<!-- accent_start -->.+<!-- accent_end -->', re.S)
     num_updated = 0
     num_already_done = 0
     for nid in note_ids:
         row = mw.col.db.first('SELECT flds FROM notes WHERE id = :nid', nid=nid)
         flds_str = row[0]
-        if 'accent_start' not in flds_str:
+        fields = flds_str.split('\x1f')
+        if 'accent_start' not in fields[del_idx]:
             # has no pitch accent image
             num_already_done += 1
             continue
-        fields = flds_str.split('\x1f')
-        fields[reading_idx] = re.sub(acc_patt, '', fields[reading_idx])
+        fields[del_idx] = re.sub(acc_patt, '', fields[del_idx])
         new_flds_str = '\x1f'.join(fields)
         mod_time = int(time.time())
         mw.col.db.execute(
