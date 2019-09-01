@@ -56,7 +56,8 @@ def select_note_fields_all(note_id):
     example_row = mw.col.db.first(
         'SELECT flds FROM notes WHERE id = :nid', nid=note_id)
     example_flds = example_row[0].split('\x1f')
-    choices = [fld[:20] for fld in example_flds if len(fld) > 0]
+    choices = ['[{}] {}'.format(i, fld[:20]) for i, fld
+               in enumerate(example_flds)]
     expr_idx = chooseList(
         'Which field contains the Japanese expression?', choices
         )
@@ -72,7 +73,8 @@ def select_note_fields_del(note_id):
     example_row = mw.col.db.first(
         'SELECT flds FROM notes WHERE id = :nid', nid=note_id)
     example_flds = example_row[0].split('\x1f')
-    choices = [fld[:20] for fld in example_flds if len(fld) > 0]
+    choices = ['[{}] {}'.format(i, fld[:20]) for i, fld
+               in enumerate(example_flds)]
     del_idx = chooseList(
         'Which field should the pitch accent be removed from?', choices
         )
@@ -140,9 +142,13 @@ def add_pitch(acc_dict, plugin_dir_name, note_ids, expr_idx, reading_idx,
         if not svg:
             num_svg_fail += 1
             continue
+        if len(fields[output_idx]) > 0:
+            separator = '<br><hr><br>'
+        else:
+            separator = ''
         fields[output_idx] = (
-            '{}<!-- accent_start --><br><hr><br>{}<!-- accent_end -->'
-            ).format(fields[output_idx], svg)  # add svg
+            '{}<!-- accent_start -->{}{}<!-- accent_end -->'
+            ).format(fields[output_idx], separator, svg)  # add svg
         new_flds_str = '\x1f'.join(fields)
         mod_time = int(time.time())
         mw.col.db.execute(
