@@ -1,0 +1,8 @@
+This plugin makes use of data from Wadoku by Ulrich Apel.
+(See https://github.com/IllDepence/anki_add_pitch/blob/master/wadoku_parse.py
+ for more details.)
+
+Wadoku license information is available on the web:
+
+http://www.wadoku.de/wiki/display/WAD/Wörterbuch+Lizenz
+http://www.wadoku.de/wiki/display/WAD/%28Vorschlag%29+Neue+Wadoku-Daten+Lizenz
