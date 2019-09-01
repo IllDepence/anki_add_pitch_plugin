@@ -21,7 +21,7 @@ def select_deck_id(msg):
 
 def get_accent_dict(path):
     acc_dict = {}
-    with open(path) as f:
+    with open(path, encoding='utf8') as f:
         for line in f:
             orths_txt, hira, hz, accs_txt, patts_txt = line.strip().split('\u241e')
             orth_txts = orths_txt.split('\u241f')
