@@ -6,6 +6,7 @@ import re
 import time
 from aqt import mw
 from aqt.utils import chooseList
+from anki.utils import stripHTML
 
 def select_deck_id(msg):
     decks = []
@@ -80,6 +81,13 @@ def select_note_fields_del(note_id):
         )
     return del_idx
 
+def clean(s):
+    # remove HTML
+    s = stripHTML(s)
+    # remove everyhing in brackets
+    s = re.sub(r'[\[\(\{][^\]\)\}]*[\]\)\}]', '', s)
+    return s.strip()
+
 def get_acc_patt(expr_field, reading_field, dicts):
     def select_best_patt(reading_field, patts):
         best_pos = 9001
@@ -94,9 +102,10 @@ def get_acc_patt(expr_field, reading_field, dicts):
             except ValueError:
                 continue
         return best
-    expr_field = expr_field.replace('[\d]', '')
-    expr_field = expr_field.replace('[^\d]', '')
-    expr_field = expr_field.strip()
+    expr_field = clean(expr_field)
+    reading_field = clean(reading_field)
+    if len(expr_field) == 0:
+        return False
     for dic in dicts:
         patts = dic.get(expr_field, False)
         if patts:
@@ -195,6 +204,3 @@ def clean_orth(orth):
     orth = re.sub('[()△×･〈〉{}]', '', orth)  # 
     orth = orth.replace('…', '〜')  # change depending on what you use
     return orth
-    cardCount = mw.col.cardCount()
-    ret = chooseList('prompt', ['a', 'b', 'c'])
-    showInfo('ret: {}'.format(ret))
