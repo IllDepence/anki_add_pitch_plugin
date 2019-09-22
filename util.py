@@ -25,7 +25,7 @@ def select_note_type(note_type_ids):
     models_dict = json.loads(row[0])
     model_names = [models_dict[str(mid)]['name'] for mid in note_type_ids]
     choice = chooseList(
-        'Which note type would you like to extend?',
+        'Select a note type.',
         model_names
         )
     return note_type_ids[choice]
@@ -63,20 +63,13 @@ def get_note_type_ids(deck_id):
         note_type_ids.append(mid)
     return note_type_ids
 
-def get_note_ids(deck_id, note_type=None):
+def get_note_ids(deck_id, note_type):
     note_ids = []
-    if note_type:
-        for row in mw.col.db.execute(
-            'SELECT id FROM notes WHERE mid = :mid AND id IN (SELECT nid FROM'
-            ' cards WHERE did = :did) ORDER BY id', mid=note_type, did=deck_id):
-            nid = row[0]
-            note_ids.append(nid)
-    else:
-        for row in mw.col.db.execute(
-            'SELECT id FROM notes WHERE id IN (SELECT nid FROM'
-            ' cards WHERE did = :did) ORDER BY id', did=deck_id):
-            nid = row[0]
-            note_ids.append(nid)
+    for row in mw.col.db.execute(
+        'SELECT id FROM notes WHERE mid = :mid AND id IN (SELECT nid FROM'
+        ' cards WHERE did = :did) ORDER BY id', mid=note_type, did=deck_id):
+        nid = row[0]
+        note_ids.append(nid)
     return note_ids
 
 def select_note_fields_all(note_id):
@@ -201,7 +194,7 @@ def remove_pitch(note_ids, del_idx):
         row = mw.col.db.first('SELECT flds FROM notes WHERE id = :nid', nid=nid)
         flds_str = row[0]
         fields = flds_str.split('\x1f')
-        if 'accent_start' not in fields[del_idx]:
+        if 'accent_start' not in fields[del_idx]: #FIXME
             # has no pitch accent image
             num_already_done += 1
             continue

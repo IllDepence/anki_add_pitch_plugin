@@ -38,7 +38,7 @@ def add_pitch_dialog():
     note_type_ids = pa_util.get_note_type_ids(deck_id)
     if len(note_type_ids) > 1:
         note_type_id = pa_util.select_note_type(note_type_ids)
-    if len(note_type_ids) < 1:
+    elif len(note_type_ids) < 1:
         showInfo('No cards found.')
         return
     else:
@@ -75,7 +75,15 @@ def remove_pitch_dialog():
     deck_id = pa_util.select_deck_id(
         'From which deck would you like to remove?'
         )
-    note_ids = pa_util.get_note_ids(deck_id)
+    note_type_ids = pa_util.get_note_type_ids(deck_id)
+    if len(note_type_ids) > 1:
+        note_type_id = pa_util.select_note_type(note_type_ids)
+    elif len(note_type_ids) < 1:
+        showInfo('No cards found.')
+        return
+    else:
+        note_type_id = note_type_ids[0]
+    note_ids = pa_util.get_note_ids(deck_id, note_type_id)
     del_idx = pa_util.select_note_fields_del(note_ids[0])
 
     # remove from notes
