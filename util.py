@@ -20,6 +20,16 @@ def select_deck_id(msg):
     choice = chooseList(msg, choices)
     return decks[choice][0]
 
+def select_note_type(note_type_ids):
+    row = mw.col.db.first('SELECT models FROM col')
+    models_dict = json.loads(row[0])
+    model_names = [models_dict[str(mid)]['name'] for mid in note_type_ids]
+    choice = chooseList(
+        'Which note type would you like to extend?',
+        model_names
+        )
+    return note_type_ids[choice]
+
 def get_accent_dict(path):
     acc_dict = {}
     with open(path, encoding='utf8') as f:
@@ -44,11 +54,20 @@ def get_accent_dict(path):
                     acc_dict[orth].append((hira, patt_common))
     return acc_dict
 
-def get_note_ids(deck_id):
+def get_note_type_ids(deck_id):
+    note_type_ids = []
+    for row in mw.col.db.execute(
+        'SELECT distinct mid FROM notes WHERE id IN (SELECT nid FROM'
+        ' cards WHERE did = :did) ORDER BY id', did=deck_id):
+        mid = row[0]
+        note_type_ids.append(mid)
+    return note_type_ids
+
+def get_note_ids(deck_id, note_type):
     note_ids = []
     for row in mw.col.db.execute(
-        'SELECT id FROM notes WHERE id IN (SELECT nid FROM'
-        ' cards WHERE did = :did) ORDER BY id', did=deck_id):
+        'SELECT id FROM notes WHERE mid = :mid AND id IN (SELECT nid FROM'
+        ' cards WHERE did = :did) ORDER BY id', mid=note_type, did=deck_id):
         nid = row[0]
         note_ids.append(nid)
     return note_ids

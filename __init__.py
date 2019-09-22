@@ -35,7 +35,12 @@ def add_pitch_dialog():
 
     # figure out collection structure
     deck_id = pa_util.select_deck_id('Which deck would you like to extend?')
-    note_ids = pa_util.get_note_ids(deck_id)
+    note_type_ids = pa_util.get_note_type_ids(deck_id)
+    if len(note_type_ids) > 1:
+        note_type_id = pa_util.select_note_type(note_type_ids)
+    else:
+        note_type_id = note_type_ids[0]
+    note_ids = pa_util.get_note_ids(deck_id, note_type_id)
     expr_idx, rdng_idx, out_idx = pa_util.select_note_fields_all(note_ids[0])
 
     # extend notes
