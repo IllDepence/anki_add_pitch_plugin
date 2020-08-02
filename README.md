@@ -1,3 +1,5 @@
+**[Legacy code for Anki versions ≤ 2.1.28]**
+
 Anki addon to automatically add pitch accent information to cards.
 
 ### Features
