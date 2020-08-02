@@ -10,25 +10,26 @@ from anki.utils import stripHTML
 
 def select_deck_id(msg):
     decks = []
-    for row in mw.col.db.execute('SELECT decks FROM col'):
-        deks = json.loads(row[0])
-        for key in deks:
-            d_id = deks[key]['id']
-            d_name = deks[key]['name']
-            decks.append((d_id, d_name))
+    for row in mw.col.db.execute('SELECT id, name FROM decks'):
+        d_id = row[0]
+        d_name = row[1]
+        decks.append((d_id, d_name))
     choices = [deck[1] for deck in decks]
     choice = chooseList(msg, choices)
     return decks[choice][0]
 
 def select_note_type(note_type_ids):
-    row = mw.col.db.first('SELECT models FROM col')
-    models_dict = json.loads(row[0])
-    model_names = [models_dict[str(mid)]['name'] for mid in note_type_ids]
+    note_types = []
+    for row in  mw.col.db.execute('SELECT id, name FROM notetypes'):
+        n_id = row[0]
+        n_name = row[1]
+        note_types.append((n_id, n_name))
+    choices = [note_type[1] for note_type in note_types]
     choice = chooseList(
         'Select a note type.',
-        model_names
+        choices
         )
-    return note_type_ids[choice]
+    return note_types[choice][0]
 
 def get_accent_dict(path):
     acc_dict = {}
@@ -58,7 +59,7 @@ def get_note_type_ids(deck_id):
     note_type_ids = []
     for row in mw.col.db.execute(
         'SELECT distinct mid FROM notes WHERE id IN (SELECT nid FROM'
-        ' cards WHERE did = :did) ORDER BY id', did=deck_id):
+        ' cards WHERE did = ?) ORDER BY id', deck_id):
         mid = row[0]
         note_type_ids.append(mid)
     return note_type_ids
@@ -66,15 +67,15 @@ def get_note_type_ids(deck_id):
 def get_note_ids(deck_id, note_type):
     note_ids = []
     for row in mw.col.db.execute(
-        'SELECT id FROM notes WHERE mid = :mid AND id IN (SELECT nid FROM'
-        ' cards WHERE did = :did) ORDER BY id', mid=note_type, did=deck_id):
+        'SELECT id FROM notes WHERE mid = ? AND id IN (SELECT nid FROM'
+        ' cards WHERE did = ?) ORDER BY id', note_type, deck_id):
         nid = row[0]
         note_ids.append(nid)
     return note_ids
 
 def select_note_fields_all(note_id):
     example_row = mw.col.db.first(
-        'SELECT flds FROM notes WHERE id = :nid', nid=note_id)
+        'SELECT flds FROM notes WHERE id = ?', note_id)
     example_flds = example_row[0].split('\x1f')
     choices = ['[{}] {}'.format(i, fld[:20]) for i, fld
                in enumerate(example_flds)]
@@ -91,7 +92,7 @@ def select_note_fields_all(note_id):
 
 def select_note_fields_del(note_id):
     example_row = mw.col.db.first(
-        'SELECT flds FROM notes WHERE id = :nid', nid=note_id)
+        'SELECT flds FROM notes WHERE id = ?', note_id)
     example_flds = example_row[0].split('\x1f')
     choices = ['[{}] {}'.format(i, fld[:20]) for i, fld
                in enumerate(example_flds)]
@@ -150,7 +151,7 @@ def add_pitch(acc_dict, plugin_dir_name, note_ids, expr_idx, reading_idx,
     num_svg_fail = 0
     for nid in note_ids:
         row = mw.col.db.first(
-            'SELECT flds FROM notes WHERE id = :nid', nid=nid
+            'SELECT flds FROM notes WHERE id = ?', nid
             )
         flds_str = row[0]
         if '<!-- accent_start -->' in flds_str:
@@ -191,7 +192,7 @@ def remove_pitch(note_ids, del_idx):
     num_updated = 0
     num_already_done = 0
     for nid in note_ids:
-        row = mw.col.db.first('SELECT flds FROM notes WHERE id = :nid', nid=nid)
+        row = mw.col.db.first('SELECT flds FROM notes WHERE id = ?', nid)
         flds_str = row[0]
         fields = flds_str.split('\x1f')
         if 'accent_start' not in fields[del_idx]: #FIXME
