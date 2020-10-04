@@ -12,8 +12,8 @@ import json
 import os
 import re
 import time
-from aqt import mw
-from aqt.utils import showInfo, chooseList
+from aqt import mw, gui_hooks
+from aqt.utils import showInfo, chooseList, getOnlyText
 from aqt.qt import *
 from anki.storage import Collection
 
@@ -95,6 +95,63 @@ def remove_pitch_dialog():
             )
         )
 
+def set_pitch_dialog(editor):
+    # get user input
+    hira = getOnlyText('Enter the reading to be set. (Example: はな)')
+    LH_patt = getOnlyText('Enter the pitch accent pattern as a sequence of \'H\'s and \'L\'s. (Example: LHL)')
+
+    # get note data
+    data = [
+        (fld, editor.mw.col.media.escapeImages(val)) for fld, val in editor.note.items()
+    ]
+
+    # remove existing patt
+    acc_patt = re.compile(r'<!-- accent_start -->.+<!-- accent_end -->', re.S)
+    old_field_val = data[editor.web.editor.currentField][1]
+    old_field_val_clean = re.sub(acc_patt, '', old_field_val)
+
+    # generate SVG
+    plugin_dir_name = __name__
+    draw_pitch = __import__(
+        '{}.draw_pitch'.format(plugin_dir_name), fromlist=('foo')
+        )
+    svg = draw_pitch.pitch_svg(hira, LH_patt)
+    if len(old_field_val_clean) > 0:
+        separator = '<br><hr><br>'
+    else:
+        separator = ''
+    new_field_val = (
+        '{}<!-- accent_start -->{}{}<!-- accent_end -->'
+        ).format(old_field_val_clean, separator, svg)
+
+    # add new patt
+    data[editor.web.editor.currentField] = (
+        data[editor.web.editor.currentField][0],            # leave field name as is
+        new_field_val                                       # update field value
+    )
+    js = 'setFields(%s); setFonts(%s); setNoteId(%s)' % (
+        json.dumps(data),
+        json.dumps(editor.fonts()),
+        json.dumps(editor.note.id)
+    )
+    editor.web.eval(js)
+
+def addPitchButton(buttons, editor):
+    # environment
+    collection_path = mw.col.path
+    plugin_dir_name = __name__
+
+    user_dir_path = os.path.split(collection_path)[0]
+    anki_dir_path = os.path.split(user_dir_path)[0]
+    plugin_dir_path = os.path.join(anki_dir_path, 'addons21', plugin_dir_name)
+    icon_path = os.path.join(plugin_dir_path, 'icon.png')
+
+    btn = editor.addButton(icon_path,
+                         'foo',
+                         set_pitch_dialog,
+                         tip='set pitch accent')
+    buttons.append(btn)
+
 # add menu items
 pa_menu = QMenu('Pitch Accent', mw)
 pa_menu_add = pa_menu.addAction('add')
@@ -104,5 +161,5 @@ pa_menu_add.triggered.connect(add_pitch_dialog)
 pa_menu_remove.triggered.connect(remove_pitch_dialog)
 # and add it to the tools menu
 mw.form.menuTools.addMenu(pa_menu)
-
-# mw.col.db.execute("update cards set ivl = ? where id = ?", newIvl, cardId)
+# add editor button
+gui_hooks.editor_did_init_buttons.append(addPitchButton)
