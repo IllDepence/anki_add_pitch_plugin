@@ -154,7 +154,8 @@ def add_pitch(acc_dict, plugin_dir_name, note_ids, expr_idx, reading_idx,
             'SELECT flds FROM notes WHERE id = ?', nid
             )
         flds_str = row[0]
-        if '<!-- accent_start -->' in flds_str:
+        if ('<!-- accent_start -->' in flds_str or
+            '<!-- user_accent_start -->' in flds_str):
             # already has pitch accent image
             num_already_done += 1
             continue
@@ -187,15 +188,24 @@ def add_pitch(acc_dict, plugin_dir_name, note_ids, expr_idx, reading_idx,
         num_updated += 1
     return not_found_list, num_updated, num_already_done, num_svg_fail
 
-def remove_pitch(note_ids, del_idx):
-    acc_patt = re.compile(r'<!-- accent_start -->.+<!-- accent_end -->', re.S)
+def remove_pitch(note_ids, del_idx, user_set=False):
+    if user_set:
+        tag_prefix = 'user_'
+    else:
+        tag_prefix = ''
+    acc_patt = re.compile(
+        r'<!-- {}accent_start -->.+<!-- {}accent_end -->'.format(
+            tag_prefix, tag_prefix
+        ),
+        re.S
+    )
     num_updated = 0
     num_already_done = 0
     for nid in note_ids:
         row = mw.col.db.first('SELECT flds FROM notes WHERE id = ?', nid)
         flds_str = row[0]
         fields = flds_str.split('\x1f')
-        if 'accent_start' not in fields[del_idx]: #FIXME
+        if ' {}accent_start'.format(tag_prefix) not in fields[del_idx]: #FIXME
             # has no pitch accent image
             num_already_done += 1
             continue

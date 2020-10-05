@@ -59,7 +59,16 @@ def add_pitch_dialog():
             )
         )
 
-def remove_pitch_dialog():
+def add_pitch_dialog_user():
+    showInfo(('You can manually set pitch accent annotations when adding or'
+              ' editing cards by clicking on the \'set pitch accent\' icon'
+              ' located on the right hand side next to the text formatting'
+              ' options.'))
+
+def remove_pitch_dialog_user():
+    return remove_pitch_dialog(user_set=True)
+
+def remove_pitch_dialog(user_set=False):
     # environment
     collection_path = mw.col.path
     plugin_dir_name = __name__
@@ -87,7 +96,7 @@ def remove_pitch_dialog():
     del_idx = pa_util.select_note_fields_del(note_ids[0])
 
     # remove from notes
-    n_adone, n_updt  = pa_util.remove_pitch(note_ids, del_idx)
+    n_adone, n_updt  = pa_util.remove_pitch(note_ids, del_idx, user_set)
     showInfo(('done :)\n'
         'skipped {} notes w/o accent annotation\n'
         'updated {} notes').format(
@@ -98,15 +107,22 @@ def remove_pitch_dialog():
 def set_pitch_dialog(editor):
     # get user input
     hira = getOnlyText('Enter the reading to be set. (Example: はな)')
-    LH_patt = getOnlyText('Enter the pitch accent pattern as a sequence of \'H\'s and \'L\'s. (Example: LHL)')
+    LH_patt = getOnlyText(
+        ('Enter the pitch accent pattern as a sequence of \'H\'s and \'L\'s. '
+        '(Example: LHL)')
+    )
 
     # get note data
     data = [
-        (fld, editor.mw.col.media.escapeImages(val)) for fld, val in editor.note.items()
+        (fld, editor.mw.col.media.escapeImages(val))
+        for fld, val in editor.note.items()
     ]
 
     # remove existing patt
-    acc_patt = re.compile(r'<!-- accent_start -->.+<!-- accent_end -->', re.S)
+    acc_patt = re.compile(
+        r'<!-- (user_)?accent_start -->.+<!-- (user_)?accent_end -->',
+        re.S
+    )
     old_field_val = data[editor.web.editor.currentField][1]
     old_field_val_clean = re.sub(acc_patt, '', old_field_val)
 
@@ -121,19 +137,23 @@ def set_pitch_dialog(editor):
     else:
         separator = ''
     new_field_val = (
-        '{}<!-- accent_start -->{}{}<!-- accent_end -->'
+        '{}<!-- user_accent_start -->{}{}<!-- user_accent_end -->'
         ).format(old_field_val_clean, separator, svg)
+    if hira == '' and LH_patt == '':
+        new_field_val = old_field_val_clean
 
     # add new patt
     data[editor.web.editor.currentField] = (
-        data[editor.web.editor.currentField][0],            # leave field name as is
-        new_field_val                                       # update field value
+        data[editor.web.editor.currentField][0],       # leave field name as is
+        new_field_val                                  # update field value
     )
-    js = 'setFields(%s); setFonts(%s); setNoteId(%s)' % (
+    js = 'setFields(%s); setFonts(%s); focusField(%s); setNoteId(%s)' % (
         json.dumps(data),
         json.dumps(editor.fonts()),
+        json.dumps(editor.web.editor.currentField),
         json.dumps(editor.note.id)
     )
+    js = gui_hooks.editor_will_load_note(js, editor.note, editor)
     editor.web.eval(js)
 
 def addPitchButton(buttons, editor):
@@ -154,11 +174,15 @@ def addPitchButton(buttons, editor):
 
 # add menu items
 pa_menu = QMenu('Pitch Accent', mw)
-pa_menu_add = pa_menu.addAction('add')
-pa_menu_remove = pa_menu.addAction('remove')
+pa_menu_add = pa_menu.addAction('bulk add')
+pa_menu_remove = pa_menu.addAction('bulk remove')
+pa_menu_add_user = pa_menu.addAction('manually add/edit/remove')
+pa_menu_remove_user = pa_menu.addAction('remove all manually set')
 # add triggers
 pa_menu_add.triggered.connect(add_pitch_dialog)
 pa_menu_remove.triggered.connect(remove_pitch_dialog)
+pa_menu_add_user.triggered.connect(add_pitch_dialog_user)
+pa_menu_remove_user.triggered.connect(remove_pitch_dialog_user)
 # and add it to the tools menu
 mw.form.menuTools.addMenu(pa_menu)
 # add editor button
