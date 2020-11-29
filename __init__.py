@@ -33,6 +33,13 @@ def add_pitch_dialog():
     pitch_csv_path = os.path.join(plugin_dir_path, 'wadoku_pitchdb.csv')
     acc_dict = pa_util.get_accent_dict(pitch_csv_path)
 
+    # load user pitch dict if present
+    user_pitch_csv_path = os.path.join(plugin_dir_path, 'user_pitchdb.csv')
+    if os.path.isfile(user_pitch_csv_path):
+        acc_dict.update(
+            pa_util.get_user_accent_dict(user_pitch_csv_path)
+        )
+
     # figure out collection structure
     deck_id = pa_util.select_deck_id('Which deck would you like to extend?')
     note_type_ids = pa_util.get_note_type_ids(deck_id)
@@ -64,6 +71,19 @@ def add_pitch_dialog_user():
               ' editing cards by clicking on the \'set pitch accent\' icon'
               ' located on the right hand side next to the text formatting'
               ' options.'))
+
+def show_custom_db_path_dialog():
+    collection_path = mw.col.path
+    plugin_dir_name = __name__
+    user_dir_path = os.path.split(collection_path)[0]
+    anki_dir_path = os.path.split(user_dir_path)[0]
+    plugin_dir_path = os.path.join(anki_dir_path, 'addons21', plugin_dir_name)
+    user_pitch_csv_path = os.path.join(plugin_dir_path, 'user_pitchdb.csv')
+
+    showInfo(('You can extend and overwrite pitch accent patterns using the'
+              ' file "{}". The file has to be three columns (expression,'
+              ' reading, pitch accent pattern) separated by TAB characters.'
+              ''.format(user_pitch_csv_path)))
 
 def remove_pitch_dialog_user():
     return remove_pitch_dialog(user_set=True)
@@ -178,11 +198,13 @@ pa_menu_add = pa_menu.addAction('bulk add')
 pa_menu_remove = pa_menu.addAction('bulk remove')
 pa_menu_add_user = pa_menu.addAction('manually add/edit/remove')
 pa_menu_remove_user = pa_menu.addAction('remove all manually set')
+pa_menu_custom_db_path = pa_menu.addAction('show custom DB path')
 # add triggers
 pa_menu_add.triggered.connect(add_pitch_dialog)
 pa_menu_remove.triggered.connect(remove_pitch_dialog)
 pa_menu_add_user.triggered.connect(add_pitch_dialog_user)
 pa_menu_remove_user.triggered.connect(remove_pitch_dialog_user)
+pa_menu_custom_db_path.triggered.connect(show_custom_db_path_dialog)
 # and add it to the tools menu
 mw.form.menuTools.addMenu(pa_menu)
 # add editor button
