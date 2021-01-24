@@ -162,12 +162,12 @@ def add_pitch(acc_dict, plugin_dir_name, note_ids, expr_idx, reading_idx,
             'SELECT flds FROM notes WHERE id = ?', nid
             )
         flds_str = row[0]
-        if ('<!-- accent_start -->' in flds_str or
-            '<!-- user_accent_start -->' in flds_str):
+        fields = flds_str.split('\x1f')
+        if ('<!-- accent_start -->' in fields[output_idx] or
+            '<!-- user_accent_start -->' in fields[output_idx]):
             # already has pitch accent image
             num_already_done += 1
             continue
-        fields = flds_str.split('\x1f')
         expr_field = fields[expr_idx].strip()
         reading_field = fields[reading_idx].strip()
         patt = get_acc_patt(expr_field, reading_field, [acc_dict])
