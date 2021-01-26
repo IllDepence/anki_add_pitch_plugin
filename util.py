@@ -7,6 +7,7 @@ import time
 from aqt import mw
 from aqt.utils import chooseList
 from anki.utils import stripHTML
+from .draw_pitch import pitch_svg
 
 def select_deck_id(msg):
     decks = []
@@ -150,9 +151,6 @@ def get_acc_patt(expr_field, reading_field, dicts):
 
 def add_pitch(acc_dict, plugin_dir_name, note_ids, expr_idx, reading_idx,
               output_idx):
-    draw_pitch = __import__(
-        '{}.draw_pitch'.format(plugin_dir_name), fromlist=('foo')
-        )
     not_found_list = []
     num_updated = 0
     num_already_done = 0
@@ -176,7 +174,7 @@ def add_pitch(acc_dict, plugin_dir_name, note_ids, expr_idx, reading_idx,
             continue
         hira, LlHh_patt = patt
         LH_patt = re.sub(r'[lh]', '', LlHh_patt)
-        svg = draw_pitch.pitch_svg(hira, LH_patt)
+        svg = pitch_svg(hira, LH_patt)
         if not svg:
             num_svg_fail += 1
             continue

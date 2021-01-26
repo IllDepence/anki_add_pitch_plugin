@@ -16,6 +16,8 @@ from aqt import mw, gui_hooks
 from aqt.utils import showInfo, chooseList, getOnlyText
 from aqt.qt import *
 from anki.storage import Collection
+from .util import *
+from .draw_pitch import pitch_svg
 
 def add_pitch_dialog():
     # environment
@@ -26,35 +28,32 @@ def add_pitch_dialog():
     anki_dir_path = os.path.split(user_dir_path)[0]
     plugin_dir_path = os.path.join(anki_dir_path, 'addons21', plugin_dir_name)
 
-    # plugin utils import
-    pa_util = __import__('{}.util'.format(plugin_dir_name), fromlist=('foo'))
-
     # load pitch dict
     pitch_csv_path = os.path.join(plugin_dir_path, 'wadoku_pitchdb.csv')
-    acc_dict = pa_util.get_accent_dict(pitch_csv_path)
+    acc_dict = get_accent_dict(pitch_csv_path)
 
     # load user pitch dict if present
     user_pitch_csv_path = os.path.join(plugin_dir_path, 'user_pitchdb.csv')
     if os.path.isfile(user_pitch_csv_path):
         acc_dict.update(
-            pa_util.get_user_accent_dict(user_pitch_csv_path)
+            get_user_accent_dict(user_pitch_csv_path)
         )
 
     # figure out collection structure
-    deck_id = pa_util.select_deck_id('Which deck would you like to extend?')
-    note_type_ids = pa_util.get_note_type_ids(deck_id)
+    deck_id = select_deck_id('Which deck would you like to extend?')
+    note_type_ids = get_note_type_ids(deck_id)
     if len(note_type_ids) > 1:
-        note_type_id = pa_util.select_note_type(note_type_ids)
+        note_type_id = select_note_type(note_type_ids)
     elif len(note_type_ids) < 1:
         showInfo('No cards found.')
         return
     else:
         note_type_id = note_type_ids[0]
-    note_ids = pa_util.get_note_ids(deck_id, note_type_id)
-    expr_idx, rdng_idx, out_idx = pa_util.select_note_fields_all(note_ids[0])
+    note_ids = get_note_ids(deck_id, note_type_id)
+    expr_idx, rdng_idx, out_idx = select_note_fields_all(note_ids[0])
 
     # extend notes
-    nf_lst, n_updt, n_adone, n_sfail = pa_util.add_pitch(
+    nf_lst, n_updt, n_adone, n_sfail = add_pitch(
         acc_dict, plugin_dir_name, note_ids, expr_idx, rdng_idx, out_idx
         )
     showInfo(('done :)\n'
@@ -97,26 +96,23 @@ def remove_pitch_dialog(user_set=False):
     anki_dir_path = os.path.split(user_dir_path)[0]
     plugin_dir_path = os.path.join(anki_dir_path, 'addons21', plugin_dir_name)
 
-    # plugin utils import
-    pa_util = __import__('{}.util'.format(plugin_dir_name), fromlist=('foo'))
-
     # figure out collection structure
-    deck_id = pa_util.select_deck_id(
+    deck_id = select_deck_id(
         'From which deck would you like to remove?'
         )
-    note_type_ids = pa_util.get_note_type_ids(deck_id)
+    note_type_ids = get_note_type_ids(deck_id)
     if len(note_type_ids) > 1:
-        note_type_id = pa_util.select_note_type(note_type_ids)
+        note_type_id = select_note_type(note_type_ids)
     elif len(note_type_ids) < 1:
         showInfo('No cards found.')
         return
     else:
         note_type_id = note_type_ids[0]
-    note_ids = pa_util.get_note_ids(deck_id, note_type_id)
-    del_idx = pa_util.select_note_fields_del(note_ids[0])
+    note_ids = get_note_ids(deck_id, note_type_id)
+    del_idx = select_note_fields_del(note_ids[0])
 
     # remove from notes
-    n_adone, n_updt  = pa_util.remove_pitch(note_ids, del_idx, user_set)
+    n_adone, n_updt = remove_pitch(note_ids, del_idx, user_set)
     showInfo(('done :)\n'
         'skipped {} notes w/o accent annotation\n'
         'updated {} notes').format(
@@ -147,11 +143,7 @@ def set_pitch_dialog(editor):
     old_field_val_clean = re.sub(acc_patt, '', old_field_val)
 
     # generate SVG
-    plugin_dir_name = __name__
-    draw_pitch = __import__(
-        '{}.draw_pitch'.format(plugin_dir_name), fromlist=('foo')
-        )
-    svg = draw_pitch.pitch_svg(hira, LH_patt)
+    svg = pitch_svg(hira, LH_patt)
     if len(old_field_val_clean) > 0:
         separator = '<br><hr><br>'
     else:
