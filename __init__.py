@@ -41,6 +41,8 @@ def add_pitch_dialog():
 
     # figure out collection structure
     deck_id = select_deck_id('Which deck would you like to extend?')
+    if deck_id == None:
+        return
     note_type_ids = get_note_type_ids(deck_id)
     if len(note_type_ids) > 1:
         note_type_id = select_note_type(note_type_ids)
@@ -49,8 +51,15 @@ def add_pitch_dialog():
         return
     else:
         note_type_id = note_type_ids[0]
+    if note_type_id == None:
+        return
     note_ids = get_note_ids(deck_id, note_type_id)
+    if len(note_ids) == 0:
+        showInfo('No cards found.')
+        return
     expr_idx, rdng_idx, out_idx = select_note_fields_all(note_ids[0])
+    if None in [expr_idx, rdng_idx, out_idx]:
+        return
 
     # extend notes
     nf_lst, n_updt, n_adone, n_sfail = add_pitch(
@@ -100,6 +109,8 @@ def remove_pitch_dialog(user_set=False):
     deck_id = select_deck_id(
         'From which deck would you like to remove?'
         )
+    if deck_id == None:
+        return
     note_type_ids = get_note_type_ids(deck_id)
     if len(note_type_ids) > 1:
         note_type_id = select_note_type(note_type_ids)
@@ -108,8 +119,15 @@ def remove_pitch_dialog(user_set=False):
         return
     else:
         note_type_id = note_type_ids[0]
+    if note_type_id == None:
+        return
     note_ids = get_note_ids(deck_id, note_type_id)
+    if len(note_ids) == 0:
+        showInfo('No cards found.')
+        return
     del_idx = select_note_fields_del(note_ids[0])
+    if del_idx == None:
+        return
 
     # remove from notes
     n_adone, n_updt = remove_pitch(note_ids, del_idx, user_set)

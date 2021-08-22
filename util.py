@@ -5,9 +5,37 @@ import json
 import re
 import time
 from aqt import mw
-from aqt.utils import chooseList
+from aqt.utils import Qt, QDialog, QVBoxLayout, QLabel, QListWidget, QDialogButtonBox
 from anki.utils import stripHTML
 from .draw_pitch import pitch_svg
+
+def customChooseList(msg, choices, startrow=0):
+    """ Copy of https://github.com/ankitects/anki/blob/main/
+            qt/aqt/utils.py but with a cancel button added.
+
+    """
+
+    parent = mw.app.activeWindow()
+    d = QDialog(parent)
+    d.setWindowModality(Qt.WindowModal)
+    l = QVBoxLayout()
+    d.setLayout(l)
+    t = QLabel(msg)
+    l.addWidget(t)
+    c = QListWidget()
+    c.addItems(choices)
+    c.setCurrentRow(startrow)
+    l.addWidget(c)
+    buts = QDialogButtonBox.Ok | QDialogButtonBox.Cancel
+    bb = QDialogButtonBox(buts)
+    l.addWidget(bb)
+    bb.accepted.connect(d.accept)
+    bb.rejected.connect(d.reject)
+    l.addWidget(bb)
+    ret = d.exec_()  # 1 if Ok, 0 if Cancel or window closed
+    if ret == 0:
+        return None  # can't be Faluse b/c False == 0
+    return c.currentRow()
 
 def select_deck_id(msg):
     decks = []
@@ -16,7 +44,9 @@ def select_deck_id(msg):
         d_name = row[1]
         decks.append((d_id, d_name))
     choices = [deck[1] for deck in decks]
-    choice = chooseList(msg, choices)
+    choice = customChooseList(msg, choices)
+    if choice == None:
+        return None
     return decks[choice][0]
 
 def select_note_type(note_type_ids):
@@ -26,10 +56,12 @@ def select_note_type(note_type_ids):
         n_name = row[1]
         note_types.append((n_id, n_name))
     choices = [note_type[1] for note_type in note_types]
-    choice = chooseList(
+    choice = customChooseList(
         'Select a note type.',
         choices
         )
+    if choice == None:
+        return None
     return note_types[choice][0]
 
 def get_accent_dict(path):
@@ -88,15 +120,21 @@ def select_note_fields_all(note_id):
     example_flds = example_row[0].split('\x1f')
     choices = ['[{}] {}'.format(i, fld[:20]) for i, fld
                in enumerate(example_flds)]
-    expr_idx = chooseList(
+    expr_idx = customChooseList(
         'Which field contains the Japanese expression?', choices
         )
-    reading_idx = chooseList(
+    if expr_idx == None:
+        return None, None, None
+    reading_idx = customChooseList(
         'Which field contains the reading?', choices
         )
-    output_idx = chooseList(
+    if reading_idx == None:
+        return None, None, None
+    output_idx = customChooseList(
         'Which field should the pitch accent be shown in?', choices
         )
+    if output_idx == None:
+        return None, None, None
     return expr_idx, reading_idx, output_idx
 
 def select_note_fields_del(note_id):
@@ -105,7 +143,7 @@ def select_note_fields_del(note_id):
     example_flds = example_row[0].split('\x1f')
     choices = ['[{}] {}'.format(i, fld[:20]) for i, fld
                in enumerate(example_flds)]
-    del_idx = chooseList(
+    del_idx = customChooseList(
         'Which field should the pitch accent be removed from?', choices
         )
     return del_idx
