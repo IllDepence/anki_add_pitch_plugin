@@ -93,7 +93,10 @@ def get_user_accent_dict(path):
     with open(path, encoding='utf8') as f:
         for line in f:
             orth, hira, patt = line.strip().split('\t')
-            acc_dict[orth] = [(hira, patt)]
+            if orth in acc_dict:
+                acc_dict[orth].append((hira, patt))
+            else:
+                acc_dict[orth] = [(hira, patt)]
     return acc_dict
 
 def get_note_type_ids(deck_id):
