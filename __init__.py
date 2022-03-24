@@ -139,6 +139,10 @@ def remove_pitch_dialog(user_set=False):
         )
 
 def set_pitch_dialog(editor):
+    if editor.web.editor.currentField is None:
+        showInfo('A field needs to be selected')
+        return
+
     # get user input
     hira = getOnlyText('Enter the reading to be set. (Example: はな)')
     LH_patt = getOnlyText(
