@@ -154,8 +154,18 @@ def select_note_fields_del(note_id):
 def clean(s):
     # remove HTML
     s = stripHTML(s)
-    # remove everyhing in brackets
-    s = re.sub(r'[\[\(\{][^\]\)\}]*[\]\)\}]', '', s)
+    # remove everything in any kind of brackets
+    # won't work well with nested brackets, but I doubt it'll totally break anything
+    # and for these purposes nested brackets probably are rare
+    s = re.sub(r'\([^)]*\)', '', s)
+    s = re.sub(r'\[[^)]*\]', '', s)
+    s = re.sub(r'{[^)]*}', '', s)
+    s = re.sub(r'「[^)]*」', '', s)
+    s = re.sub(r'（[^)]*）', '', s)
+    s = re.sub(r'｛[^)]*｝', '', s)
+    # remove all non-Japanese characters
+    # "一-鿼" is kanji, "぀-ゟ" is hiragana, and "゠-ヿ" is katakana
+    s = re.sub(r'[^一-鿼぀-ゟ゠-ヿ]', "", s)
     return s.strip()
 
 def get_acc_patt(expr_field, reading_field, dicts):
@@ -278,6 +288,6 @@ def is_katakana(s):
     return num_ktkn / max(1, len(s)) > .5
 
 def clean_orth(orth):
-    orth = re.sub('[()△×･〈〉{}]', '', orth)  # 
+    orth = re.sub('[()△×･〈〉{}]', '', orth)  #
     orth = orth.replace('…', '〜')  # change depending on what you use
     return orth
