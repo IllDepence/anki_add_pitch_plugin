@@ -13,7 +13,7 @@ import os
 import re
 import time
 from aqt import mw, gui_hooks
-from aqt.utils import showInfo, chooseList, getOnlyText
+from aqt.utils import showInfo, chooseList, getText
 from aqt.qt import *
 from anki.storage import Collection
 from .util import *
@@ -144,11 +144,16 @@ def set_pitch_dialog(editor):
         return
 
     # get user input
-    hira = getOnlyText('Enter the reading to be set. (Example: はな)')
-    LH_patt = getOnlyText(
+    hira, hira_succeeded = getText('Enter the reading to be set. (Example: はな)')
+    if not hira_succeeded:
+        return
+    
+    LH_patt, LH_patt_succeeded = getText(
         ('Enter the pitch accent pattern as a sequence of \'H\'s and \'L\'s. '
         '(Example: LHL)')
     )
+    if not LH_patt_succeeded:
+        return
 
     # get note data
     data = [
