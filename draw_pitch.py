@@ -60,6 +60,12 @@ def pitch_svg(word, patt, silent=False):
 
     mora = hira_to_mora(word)
 
+    try:
+        pitch = int(patt)
+        patt = pitch_to_pattern(pitch, len(mora))
+    except:
+        pass
+
     if len(patt) - len(mora) != 1 and not silent:
         print(('pattern should be number of morae + 1 (got: {}, {})'
               ).format(word, patt))
@@ -101,6 +107,23 @@ def pitch_svg(word, patt, silent=False):
     svg += '</svg>'
 
     return svg
+
+def pitch_to_pattern(pitch, wordlen):
+    pattlen = wordlen + 1
+    if pitch == 0:
+        res = "L"
+        res += "H" * (pattlen - 1)
+        return res
+        
+    if pitch == 1:
+        res = "H"
+        res += "L" * (pattlen - 1)
+        return res
+    
+    res = "L"
+    res += "H" * (pitch - 1)
+    res += "L" * (pattlen - pitch)
+    return res
 
 if __name__ == '__main__':
     if len(sys.argv) != 3:
