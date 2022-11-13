@@ -8,16 +8,17 @@
     http://www.wadoku.de/wiki/display/WAD/%28Vorschlag%29+Neue+Wadoku-Daten+Lizenz
 """
 
+__version__ = '0.9.0'
+
 import json
 import os
 import re
-import time
 from aqt import mw, gui_hooks
-from aqt.utils import showInfo, chooseList, getText
+from aqt.utils import showInfo, getText
 from aqt.qt import *
-from anki.storage import Collection
 from .util import *
 from .draw_pitch import pitch_svg
+
 
 def add_pitch_dialog():
     # environment
@@ -41,44 +42,47 @@ def add_pitch_dialog():
 
     # figure out collection structure
     deck_id = select_deck_id('Which deck would you like to extend?')
-    if deck_id == None:
+    if deck_id is None:
         return
     note_type_ids = get_note_type_ids(deck_id)
     if len(note_type_ids) > 1:
-        note_type_id = select_note_type(note_type_ids)
+        note_type_id = select_note_type_id(note_type_ids)
     elif len(note_type_ids) < 1:
-        showInfo('No cards found.')
+        showInfo('No cards found in deck.')
         return
     else:
         note_type_id = note_type_ids[0]
-    if note_type_id == None:
+    if note_type_id is None:
         return
     note_ids = get_note_ids(deck_id, note_type_id)
     if len(note_ids) == 0:
-        showInfo('No cards found.')
+        showInfo('No cards found for selected note type.')
         return
-    expr_idx, rdng_idx, out_idx = select_note_fields_all(note_ids[0])
+    expr_idx, rdng_idx, out_idx = select_note_fields_add(note_type_id)
     if None in [expr_idx, rdng_idx, out_idx]:
         return
 
     # extend notes
     nf_lst, n_updt, n_adone, n_sfail = add_pitch(
-        acc_dict, plugin_dir_name, note_ids, expr_idx, rdng_idx, out_idx
+        acc_dict, note_ids, expr_idx, rdng_idx, out_idx
         )
-    showInfo(('done :)\n'
+    showInfo((
+        'done :)\n'
         'skipped {} already annotated notes\n'
         'updated {} notes\n'
         'failed to generate {} annotations\n'
         'could not find {} expressions').format(
             n_adone, n_updt, n_sfail, len(nf_lst)
-            )
         )
+    )
+
 
 def add_pitch_dialog_user():
     showInfo(('You can manually set pitch accent annotations when adding or'
               ' editing cards by clicking on the \'set pitch accent\' icon'
               ' located on the right hand side next to the text formatting'
               ' options.'))
+
 
 def show_custom_db_path_dialog():
     collection_path = mw.col.path
@@ -93,8 +97,10 @@ def show_custom_db_path_dialog():
               ' reading, pitch accent pattern) separated by TAB characters.'
               ''.format(user_pitch_csv_path)))
 
+
 def remove_pitch_dialog_user():
     return remove_pitch_dialog(user_set=True)
+
 
 def remove_pitch_dialog(user_set=False):
     # environment
@@ -109,34 +115,36 @@ def remove_pitch_dialog(user_set=False):
     deck_id = select_deck_id(
         'From which deck would you like to remove?'
         )
-    if deck_id == None:
+    if deck_id is None:
         return
     note_type_ids = get_note_type_ids(deck_id)
     if len(note_type_ids) > 1:
-        note_type_id = select_note_type(note_type_ids)
+        note_type_id = select_note_type_id(note_type_ids)
     elif len(note_type_ids) < 1:
-        showInfo('No cards found.')
+        showInfo('No cards found in deck.')
         return
     else:
         note_type_id = note_type_ids[0]
-    if note_type_id == None:
+    if note_type_id is None:
         return
     note_ids = get_note_ids(deck_id, note_type_id)
     if len(note_ids) == 0:
-        showInfo('No cards found.')
+        showInfo('No cards found for selected note type.')
         return
-    del_idx = select_note_fields_del(note_ids[0])
-    if del_idx == None:
+    del_idx = select_note_fields_del(note_type_id)
+    if del_idx is None:
         return
 
     # remove from notes
     n_adone, n_updt = remove_pitch(note_ids, del_idx, user_set)
-    showInfo(('done :)\n'
+    showInfo((
+        'done :)\n'
         'skipped {} notes w/o accent annotation\n'
         'updated {} notes').format(
             n_adone, n_updt
             )
         )
+
 
 def set_pitch_dialog(editor):
     if editor.web.editor.currentField is None:
@@ -144,13 +152,15 @@ def set_pitch_dialog(editor):
         return
 
     # get user input
-    hira, hira_succeeded = getText('Enter the reading to be set. (Example: はな)')
+    hira, hira_succeeded = getText(
+        'Enter the reading to be set. (Example: はな)'
+    )
     if not hira_succeeded:
         return
-    
+
     LH_patt, LH_patt_succeeded = getText(
         ('Enter the pitch accent pattern as a sequence of \'H\'s and \'L\'s. '
-        '(Example: LHL)')
+         '(Example: LHL)')
     )
     if not LH_patt_succeeded:
         return
@@ -195,6 +205,7 @@ def set_pitch_dialog(editor):
     js = gui_hooks.editor_will_load_note(js, editor.note, editor)
     editor.web.eval(js)
 
+
 def addPitchButton(buttons, editor):
     # environment
     collection_path = mw.col.path
@@ -205,10 +216,12 @@ def addPitchButton(buttons, editor):
     plugin_dir_path = os.path.join(anki_dir_path, 'addons21', plugin_dir_name)
     icon_path = os.path.join(plugin_dir_path, 'icon.png')
 
-    btn = editor.addButton(icon_path,
-                         'foo',
-                         set_pitch_dialog,
-                         tip='set pitch accent')
+    btn = editor.addButton(
+        icon_path,
+        'foo',
+        set_pitch_dialog,
+        tip='set pitch accent'
+    )
     buttons.append(btn)
 
 # add menu items

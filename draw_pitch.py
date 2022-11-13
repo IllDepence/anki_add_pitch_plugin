@@ -1,5 +1,6 @@
 import sys
 
+
 def hira_to_mora(hira):
     """ Example:
             in:  'しゅんかしゅうとう'
@@ -12,7 +13,7 @@ def hira_to_mora(hira):
 
     i = 0
     while i < len(hira):
-        if i+1<len(hira) and hira[i+1] in combiners:
+        if i+1 < len(hira) and hira[i+1] in combiners:
             mora_arr.append('{}{}'.format(hira[i], hira[i+1]))
             i += 2
         else:
@@ -20,13 +21,16 @@ def hira_to_mora(hira):
             i += 1
     return mora_arr
 
+
 def circle(x, y, o=False):
-    r = ('<circle r="5" cx="{}" cy="{}" style="opacity:1;fill:#000;" />'
-        ).format(x, y)
+    r = (
+        '<circle r="5" cx="{}" cy="{}" style="opacity:1;fill:#000;" />'
+    ).format(x, y)
     if o:
         r += ('<circle r="3.25" cx="{}" cy="{}" style="opacity:1;fill:#fff;"'
               '/>').format(x, y)
     return r
+
 
 def text(x, mora):
     # letter positioning tested with Noto Sans CJK JP
@@ -37,7 +41,8 @@ def text(x, mora):
         return ('<text x="{}" y="67.5" style="font-size:20px;font-family:sans-'
                 'serif;fill:#000;">{}</text><text x="{}" y="67.5" style="font-'
                 'size:14px;font-family:sans-serif;fill:#000;">{}</text>'
-               ).format(x-5, mora[0], x+12, mora[1])
+                ).format(x-5, mora[0], x+12, mora[1])
+
 
 def path(x, y, typ, step_width):
     if typ == 's':  # straight
@@ -48,6 +53,7 @@ def path(x, y, typ, step_width):
         delta = '{},25'.format(step_width)
     return ('<path d="m {},{} {}" style="fill:none;stroke:#000;stroke-width'
             ':1.5;" />').format(x, y, delta)
+
 
 def pitch_svg(word, patt, silent=False):
     """ Draw pitch accent patterns in SVG
@@ -62,7 +68,7 @@ def pitch_svg(word, patt, silent=False):
 
     if len(patt) - len(mora) != 1 and not silent:
         print(('pattern should be number of morae + 1 (got: {}, {})'
-              ).format(word, patt))
+               ).format(word, patt))
     positions = max(len(mora), len(patt))
     step_width = 35
     margin_lr = 16
@@ -84,7 +90,7 @@ def pitch_svg(word, patt, silent=False):
             y_center = 5
         elif accent in ['L', 'l', '0']:
             y_center = 30
-        circles += circle(x_center, y_center, pos>=len(mora))
+        circles += circle(x_center, y_center, pos >= len(mora))
         if pos > 0:
             if prev_center[1] == y_center:
                 path_typ = 's'
@@ -101,6 +107,7 @@ def pitch_svg(word, patt, silent=False):
     svg += '</svg>'
 
     return svg
+
 
 if __name__ == '__main__':
     if len(sys.argv) != 3:
