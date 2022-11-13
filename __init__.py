@@ -15,8 +15,11 @@ import os
 import re
 from aqt import mw, gui_hooks
 from aqt.utils import showInfo, getText
-from aqt.qt import *
-from .util import *
+from aqt.qt import QMenu
+from .util import add_pitch, remove_pitch, get_accent_dict, get_note_type_ids,\
+                  get_note_ids, get_user_accent_dict, select_deck_id,\
+                  select_note_type_id, select_note_fields_add,\
+                  select_note_fields_del
 from .draw_pitch import pitch_svg
 
 
@@ -103,14 +106,6 @@ def remove_pitch_dialog_user():
 
 
 def remove_pitch_dialog(user_set=False):
-    # environment
-    collection_path = mw.col.path
-    plugin_dir_name = __name__
-
-    user_dir_path = os.path.split(collection_path)[0]
-    anki_dir_path = os.path.split(user_dir_path)[0]
-    plugin_dir_path = os.path.join(anki_dir_path, 'addons21', plugin_dir_name)
-
     # figure out collection structure
     deck_id = select_deck_id(
         'From which deck would you like to remove?'
@@ -223,6 +218,7 @@ def addPitchButton(buttons, editor):
         tip='set pitch accent'
     )
     buttons.append(btn)
+
 
 # add menu items
 pa_menu = QMenu('Pitch Accent', mw)

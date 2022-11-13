@@ -3,7 +3,8 @@
 
 import re
 from aqt import mw
-from aqt.utils import Qt, QDialog, QVBoxLayout, QLabel, QListWidget, QDialogButtonBox
+from aqt.utils import Qt, QDialog, QVBoxLayout, QLabel, QListWidget,\
+                      QDialogButtonBox
 from anki.utils import stripHTML
 from .draw_pitch import pitch_svg
 
@@ -123,7 +124,7 @@ def get_note_type_ids(deck_id):
     note_type_ids = set(
         [mw.col.get_card(cid).note_type()['id'] for cid in card_ids]
     )
-    return note_type_ids
+    return list(note_type_ids)
 
 
 def get_note_ids(deck_id, note_type_id):
