@@ -24,6 +24,9 @@ from .draw_pitch import pitch_svg
 
 
 def add_pitch_dialog():
+    """ Dialog for bulk adding pitch accent illustrations to notes.
+    """
+
     # environment
     collection_path = mw.col.path
     plugin_dir_name = __name__
@@ -68,26 +71,33 @@ def add_pitch_dialog():
     # extend notes
     nf_lst, n_updt, n_adone, n_sfail = add_pitch(
         acc_dict, note_ids, expr_idx, rdng_idx, out_idx
-        )
+    )
     showInfo((
         'done :)\n'
         'skipped {} already annotated notes\n'
         'updated {} notes\n'
         'failed to generate {} annotations\n'
-        'could not find {} expressions').format(
-            n_adone, n_updt, n_sfail, len(nf_lst)
-        )
+        'could not find {} expressions'
+        ).format(n_adone, n_updt, n_sfail, len(nf_lst))
     )
 
 
 def add_pitch_dialog_user():
-    showInfo(('You can manually set pitch accent annotations when adding or'
-              ' editing cards by clicking on the \'set pitch accent\' icon'
-              ' located on the right hand side next to the text formatting'
-              ' options.'))
+    """ Popup explaining how to manually set pitch accent illustrations.
+    """
+
+    showInfo((
+        'You can manually set pitch accent annotations when adding or'
+        ' editing cards by clicking on the \'set pitch accent\' icon'
+        ' located on the right hand side next to the text formatting'
+        ' options.')
+    )
 
 
 def show_custom_db_path_dialog():
+    """ Popup explaining the user custom dictionary.
+    """
+
     collection_path = mw.col.path
     plugin_dir_name = __name__
     user_dir_path = os.path.split(collection_path)[0]
@@ -95,21 +105,30 @@ def show_custom_db_path_dialog():
     plugin_dir_path = os.path.join(anki_dir_path, 'addons21', plugin_dir_name)
     user_pitch_csv_path = os.path.join(plugin_dir_path, 'user_pitchdb.csv')
 
-    showInfo(('You can extend and overwrite pitch accent patterns using the'
-              ' file "{}". The file has to be three columns (expression,'
-              ' reading, pitch accent pattern) separated by TAB characters.'
-              ''.format(user_pitch_csv_path)))
+    showInfo((
+        'You can extend and overwrite pitch accent patterns using the'
+        ' file "{}". The file has to be three columns (expression,'
+        ' reading, pitch accent pattern) separated by TAB characters.'
+        ''.format(user_pitch_csv_path))
+    )
 
 
 def remove_pitch_dialog_user():
+    """ Dialog for bulk removing user added custom pitch accent
+        illustrations from nodes.
+    """
+
     return remove_pitch_dialog(user_set=True)
 
 
 def remove_pitch_dialog(user_set=False):
+    """ Dialog for bulk removing pitch accent illustrations from nodes.
+    """
+
     # figure out collection structure
     deck_id = select_deck_id(
         'From which deck would you like to remove?'
-        )
+    )
     if deck_id is None:
         return
     note_type_ids = get_note_type_ids(deck_id)
@@ -135,13 +154,14 @@ def remove_pitch_dialog(user_set=False):
     showInfo((
         'done :)\n'
         'skipped {} notes w/o accent annotation\n'
-        'updated {} notes').format(
-            n_adone, n_updt
-            )
-        )
+        'updated {} notes').format(n_adone, n_updt)
+    )
 
 
 def set_pitch_dialog(editor):
+    """ Dialog for manually setting pitch accent illustrations.
+    """
+
     if editor.web.editor.currentField is None:
         showInfo('A field needs to be selected')
         return

@@ -91,6 +91,7 @@ def pitch_svg(word, patt, silent=False):
         elif accent in ['L', 'l', '0']:
             y_center = 30
         circles += circle(x_center, y_center, pos >= len(mora))
+        prev_center = (None, None)  # just to shut up the linter, set below
         if pos > 0:
             if prev_center[1] == y_center:
                 path_typ = 's'

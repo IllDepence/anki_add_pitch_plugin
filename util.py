@@ -11,8 +11,7 @@ from .draw_pitch import pitch_svg
 
 def customChooseList(msg, choices, startrow=0):
     """ Copy of https://github.com/ankitects/anki/blob/main/
-            qt/aqt/utils.py but with a cancel button added.
-
+        qt/aqt/utils.py but with a cancel button added.
     """
 
     parent = mw.app.activeWindow()
@@ -70,7 +69,7 @@ def select_note_type_id(note_type_ids):
     choice_idx = customChooseList(
         'Select a note type.',
         [c['name'] for c in choices]
-        )
+    )
     if choice_idx is None:
         return None
     return choices[choice_idx]['id']
@@ -153,17 +152,17 @@ def select_note_fields_add(note_type_id):
     choices = [nt['name'] for nt in mw.col.models.get(note_type_id)['flds']]
     expr_idx = customChooseList(
         'Which field contains the Japanese expression?', choices
-        )
+    )
     if expr_idx is None:
         return None, None, None
     reading_idx = customChooseList(
         'Which field contains the reading?', choices
-        )
+    )
     if reading_idx is None:
         return None, None, None
     output_idx = customChooseList(
         'Which field should the pitch accent be shown in?', choices
-        )
+    )
     if output_idx is None:
         return None, None, None
     return expr_idx, reading_idx, output_idx
@@ -177,7 +176,7 @@ def select_note_fields_del(note_type_id):
     choices = [nt['name'] for nt in mw.col.models.get(note_type_id)['flds']]
     del_idx = customChooseList(
         'Which field should the pitch accent be removed from?', choices
-        )
+    )
     return del_idx
 
 
@@ -233,15 +232,19 @@ def add_pitch(acc_dict, note_ids, expr_idx, reading_idx, output_idx):
     num_already_done = 0
     num_svg_fail = 0
     for nid in note_ids:
+        # set up note access
         note = mw.col.get_note(nid)
         expr_fld = note.keys()[expr_idx]
         reading_fld = note.keys()[reading_idx]
         output_fld = note.keys()[output_idx]
-        if ('<!-- accent_start -->' in note[output_fld] or
-                '<!-- user_accent_start -->' in note[output_fld]):
+        # check for existing illustrations
+        has_auto_accent = '<!-- accent_start -->' in note[output_fld]
+        has_manual_accent = '<!-- user_accent_start -->' in note[output_fld]
+        if has_auto_accent or has_manual_accent:
             # already has a pitch accent illustration
             num_already_done += 1
             continue
+        # determine accent pattern
         expr_field = note[expr_fld].strip()
         reading_field = note[reading_fld].strip()
         patt = get_acc_patt(expr_field, reading_field, [acc_dict])
@@ -250,6 +253,7 @@ def add_pitch(acc_dict, note_ids, expr_idx, reading_idx, output_idx):
             continue
         hira, LlHh_patt = patt
         LH_patt = re.sub(r'[lh]', '', LlHh_patt)
+        # generate SVG for accent pattern
         svg = pitch_svg(hira, LH_patt)
         if not svg:
             num_svg_fail += 1
@@ -258,6 +262,7 @@ def add_pitch(acc_dict, note_ids, expr_idx, reading_idx, output_idx):
             separator = '<br><hr><br>'
         else:
             separator = ''
+        # extend and save note
         note[output_fld] = (
             '{}<!-- accent_start -->{}{}<!-- accent_end -->'
             ).format(note[output_fld], separator, svg)  # add svg
@@ -272,6 +277,7 @@ def remove_pitch(note_ids, del_idx, user_set=False):
         Returns stats on how that went.
     """
 
+    # determine accent pattern to search for
     if user_set:
         tag_prefix = 'user_'
     else:
@@ -285,12 +291,15 @@ def remove_pitch(note_ids, del_idx, user_set=False):
     num_updated = 0
     num_already_done = 0
     for nid in note_ids:
+        # set up note access
         note = mw.col.get_note(nid)
         del_fld = note.keys()[del_idx]
+        # check for cards w/o accent illustrations
         if ' {}accent_start'.format(tag_prefix) not in note[del_fld]:
-            # has no pitch accent image
+            # has no pitch accent illustration
             num_already_done += 1
             continue
+        # update and save note
         note[del_fld] = re.sub(acc_patt, '', note[del_fld])
         mw.col.update_note(note)
         num_updated += 1
@@ -298,12 +307,19 @@ def remove_pitch(note_ids, del_idx, user_set=False):
 
 
 def hira_to_kata(s):
+    """ Convert hiragana to katakana.
+    """
+
     return ''.join(
         [chr(ord(ch) + 96) if ('ぁ' <= ch <= 'ゔ') else ch for ch in s]
         )
 
 
 def is_katakana(s):
+    """ Determine if more than half of the characters in a
+        string are katakana.
+    """
+
     num_ktkn = 0
     for ch in s:
         if ch == 'ー' or ('ァ' <= ch <= 'ヴ'):
@@ -312,6 +328,11 @@ def is_katakana(s):
 
 
 def clean_orth(orth):
+    """ Remove symbols from a string (used such that the remainder
+        ideally is a clean word that can be looked up in the
+        dictionary).
+    """
+
     orth = re.sub('[()△×･〈〉{}]', '', orth)  #
     orth = orth.replace('…', '〜')  # change depending on what you use
     return orth
