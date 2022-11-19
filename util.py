@@ -11,12 +11,14 @@ from .draw_pitch import pitch_svg
 
 def customChooseList(msg, choices, startrow=0):
     """ Copy of https://github.com/ankitects/anki/blob/main/
-        qt/aqt/utils.py but with a cancel button added.
+        qt/aqt/utils.py but with a cancel button and title
+        parameter added.
     """
 
     parent = mw.app.activeWindow()
     d = QDialog(parent)
     d.setWindowModality(Qt.WindowModal)
+    # d.setWindowTitle('TODO'  # added
     l = QVBoxLayout()
     d.setLayout(l)
     t = QLabel(msg)
