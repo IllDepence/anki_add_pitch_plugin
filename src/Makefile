@@ -1,7 +1,7 @@
 pysrc     := __init__.py draw_pitch.py util.py
-distfiles := $(pysrc) icon.png LICENSE manifest.json \
+distfiles := $(pysrc) icon.png ../LICENSE manifest.json \
              NOTE user_pitchdb.csv wadoku_pitchdb.csv
-version   := `grep -Po "(?<=__version__ = ')\d+\.\d+\.\d+(?=')" __init__.py`
+version   := `grep -Po "(?<=__version__ = ')\d+\.\d+\.\d+(?=')" _version.py`
 distdir   := ./dist/$(version)/
 basefn    := japanese_pitch_accent
 tmpdir    := ./dist/$(version)/$(basefn)

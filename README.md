@@ -11,6 +11,9 @@ Anki addon to automatically add pitch accent information to cards.
 * disambiguation
     * when an expression has several possible readings (e.g. 汚れ) the script tries to determine which one is used by inspecting the reading field of the card
     * if a word is mostly katakana, katakana instead of hiragana are used in the illustration
+* compatibility
+    * accent illustrations sync to mobile and web versions of Anki
+    * night mode compatibility through CSS (see [description on ankiweb](https://ankiweb.net/shared/info/148002038))
 
 ### Example
 ![](example.jpg)

@@ -1,0 +1,73 @@
+<b>—————&lt;[　P U R P O S E　]&gt;—————</b>
+
+Automatically adds pitch accent information to cards.
+
+
+<b>—————&lt;[　B A S I C　U S A G E　]&gt;—————</b>
+
+① Tools → Pitch Accent → bulk add
+<img src="https://raw.githubusercontent.com/IllDepence/anki_add_pitch_plugin/master/doc/ankiweb_img/menu.jpg">
+
+② Choose a deck
+③ Select a note type (is skipped if whole deck is one note type)
+④ Select the field containing the Japanese expression
+<img src="https://raw.githubusercontent.com/IllDepence/anki_add_pitch_plugin/master/doc/ankiweb_img/dialog_1.jpg">
+
+⑤ Select the field containing the reading
+⑥ Select the field to which the pitch accent info will be added
+⑦ Done
+<img src="https://raw.githubusercontent.com/IllDepence/anki_add_pitch_plugin/master/doc/ankiweb_img/dialog_2.jpg">
+
+Result
+<img src="https://raw.githubusercontent.com/IllDepence/anki_add_pitch_plugin/master/doc/ankiweb_img/output.jpg">
+
+
+
+<b>—————&lt;[　A D D I T I O N A L　F E A T U R E S　]&gt;—————</b>
+
+To manually add, edit, or remove annotations, use the card editor's 'set pitch accent' button.
+<img src="https://raw.githubusercontent.com/IllDepence/anki_add_pitch_plugin/master/doc/ankiweb_img/editor.jpg">
+
+Annotations sync to mobile (e.g. AnkiDroid) as well as AnkiWeb
+<img src="https://raw.githubusercontent.com/IllDepence/anki_add_pitch_plugin/master/doc/ankiweb_img/plattforms.jpg">
+
+Annotations are customizable via CSS
+<img src="https://raw.githubusercontent.com/IllDepence/anki_add_pitch_plugin/master/doc/ankiweb_img/css.jpg">
+
+Example usage:
+<code>
+svg.pitch { height: 150px; width: auto; }
+svg.pitch text { font-weight: bold !important; }
+svg.pitch &gt; path { stroke: #fa7 !important; }
+svg.pitch &gt; circle[r="5"] { fill: #fa7 !important; }
+svg.pitch &gt; circle[r="3.25"] { fill: #cf9 !important; }
+</code>
+
+If you’re using <b>night mode</b>, use the following style to invert the pitch accent color.
+<code>
+.nightMode svg.pitch {
+    filter: invert(1);
+}
+</code>
+
+<b>—————&lt;[　L I M I T A T I O N S　]&gt;—————</b>
+① Does only support words (and some expressions), but not whole sentences.
+② If the field in a card with the Japanese expression contains additional text, pitch accent lookup might fail (e.g. “&lt;number&gt;頭” in a card for the counter of large animals).
+③ When an expression has several possible readings (e.g. 汚れ) the script tries to determine which one is used by inspecting the reading field of the card. This does not always work.
+
+
+
+<b>—————&lt;[　M I S C　]&gt;—————</b>
+<a href="https://github.com/IllDepence/anki_add_pitch_plugin" rel="nofollow">Code</a>
+<a href="https://github.com/IllDepence/anki_add_pitch_plugin/issues" rel="nofollow">Issues &amp; Suggestions</a>
+
+
+
+<b>—————&lt;[　C H A N G E L O G　]&gt;—————</b>
+2022/03/26 -- Fixed bugs concerning functionality to manually add/edit/remove annotations. (Thanks kclisp)
+2022/01/23 -- Updated pitch accent DB (from roughly 100k to 200k entries).
+2021/08/22 -- Added cancel buttons to selection dialogs.
+2021/01/26 -- Added support for successive bulk adding of annotations to different fields of notes.
+2020/10/05 -- Added functionality to manually add/edit/remove annotations.
+2020/08/02 -- Made code compatible with new Anki 2.1.29 DB schema.
+2019/09/22 -- Added support for multiple note types within a single deck.

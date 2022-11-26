@@ -1,5 +1,5 @@
 This plugin makes use of data from Wadoku by Ulrich Apel.
-(See https://github.com/IllDepence/anki_add_pitch/blob/master/wadoku_parse.py
+(See https://github.com/IllDepence/anki_add_pitch/blob/master/src/wadoku_parse.py
  for more details.)
 
 Wadoku license information is available on the web:
