@@ -7,6 +7,7 @@ from aqt import mw
 from aqt.utils import Qt, QDialog, QVBoxLayout, QLabel, QListWidget,\
                       QDialogButtonBox
 from anki.utils import stripHTML
+from functools import lru_cache
 from .draw_pitch import pitch_svg
 
 
@@ -92,7 +93,16 @@ def select_note_type_id(note_type_ids):
     return choices[choice_idx]['id']
 
 
-def get_accent_dict(path):
+@lru_cache(maxsize=1)
+def get_accent_dict(path=None):
+
+    if path is None:
+        # load the default pitch accent dict
+        path = os.path.join(
+            get_plugin_dir_path(),
+            'wadoku_pitchdb.csv'
+        )
+
     acc_dict = {}
     with open(path, encoding='utf8') as f:
         for line in f:
@@ -119,7 +129,18 @@ def get_accent_dict(path):
     return acc_dict
 
 
-def get_user_accent_dict(path):
+@lru_cache(maxsize=1)
+def get_user_accent_dict(path=None):
+
+    if path is None:
+        # load the user custom pitch accent dict
+        path = os.path.join(
+            get_plugin_dir_path(),
+            'user_pitchdb.csv'
+        )
+        if not os.path.isfile(path):
+            return {}
+
     acc_dict = {}
     with open(path, encoding='utf8') as f:
         for line in f:

@@ -70,18 +70,13 @@ def add_pitch_dialog():
     """ Dialog for bulk adding pitch accent illustrations to notes.
     """
 
-    plugin_dir_path = get_plugin_dir_path()
-
     # load pitch dict
-    pitch_csv_path = os.path.join(plugin_dir_path, 'wadoku_pitchdb.csv')
-    acc_dict = get_accent_dict(pitch_csv_path)
+    acc_dict = get_accent_dict()
 
     # load user pitch dict if present
-    user_pitch_csv_path = os.path.join(plugin_dir_path, 'user_pitchdb.csv')
-    if os.path.isfile(user_pitch_csv_path):
-        acc_dict.update(
-            get_user_accent_dict(user_pitch_csv_path)
-        )
+    acc_dict.update(
+        get_user_accent_dict()
+    )
 
     # figure out collection structure
     deck_id = select_deck_id('Which deck would you like to extend?')
@@ -312,6 +307,16 @@ def addPitchButton(buttons, editor):
     buttons.append(btn)
 
 
+def pre_load_pitch_data(col):
+    """ Pre-load pitch accent dictionaries (will get cached)
+    """
+
+    _ = get_accent_dict()
+    _ = get_user_accent_dict()
+
+    return None
+
+
 # add menu items
 pa_menu = QMenu('Pitch Accent', mw)
 pa_menu_add = pa_menu.addAction('bulk add')
@@ -331,3 +336,9 @@ pa_menu_about.triggered.connect(about_dialog)
 mw.form.menuTools.addMenu(pa_menu)
 # add editor button
 gui_hooks.editor_did_init_buttons.append(addPitchButton)
+
+# # pre-load pitch accent dicts once collection is loaded
+# gui_hooks.collection_did_load.append(pre_load_pitch_data)
+# # commented out for the moment because presumably for most people
+# # starting Anki is *way* more frequent than starting Anki and
+# # working with the bulk add function
