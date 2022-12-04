@@ -1,12 +1,27 @@
 """ Utility functions.
 """
 
+import os
 import re
 from aqt import mw
 from aqt.utils import Qt, QDialog, QVBoxLayout, QLabel, QListWidget,\
                       QDialogButtonBox
 from anki.utils import stripHTML
 from .draw_pitch import pitch_svg
+
+
+def get_plugin_dir_path():
+    """ Determine and return the path of the plugin directory.
+    """
+
+    collection_path = mw.col.path
+    plugin_dir_name = __name__.split('.')[0]  # remove “.util”
+
+    user_dir_path = os.path.split(collection_path)[0]
+    anki_dir_path = os.path.split(user_dir_path)[0]
+    plugin_dir_path = os.path.join(anki_dir_path, 'addons21', plugin_dir_name)
+
+    return plugin_dir_path
 
 
 def customChooseList(msg, choices, startrow=0):

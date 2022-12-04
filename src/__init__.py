@@ -22,7 +22,7 @@ from ._version import __version__
 from .util import add_pitch, remove_pitch, get_accent_dict, get_note_type_ids,\
                   get_note_ids, get_user_accent_dict, select_deck_id,\
                   select_note_type_id, select_note_fields_add,\
-                  select_note_fields_del
+                  select_note_fields_del, get_plugin_dir_path
 from .draw_pitch import pitch_svg
 
 
@@ -70,13 +70,7 @@ def add_pitch_dialog():
     """ Dialog for bulk adding pitch accent illustrations to notes.
     """
 
-    # environment
-    collection_path = mw.col.path
-    plugin_dir_name = __name__
-
-    user_dir_path = os.path.split(collection_path)[0]
-    anki_dir_path = os.path.split(user_dir_path)[0]
-    plugin_dir_path = os.path.join(anki_dir_path, 'addons21', plugin_dir_name)
+    plugin_dir_path = get_plugin_dir_path()
 
     # load pitch dict
     pitch_csv_path = os.path.join(plugin_dir_path, 'wadoku_pitchdb.csv')
@@ -173,12 +167,10 @@ def show_custom_db_path_dialog():
     """ Popup explaining the user custom dictionary.
     """
 
-    collection_path = mw.col.path
-    plugin_dir_name = __name__
-    user_dir_path = os.path.split(collection_path)[0]
-    anki_dir_path = os.path.split(user_dir_path)[0]
-    plugin_dir_path = os.path.join(anki_dir_path, 'addons21', plugin_dir_name)
-    user_pitch_csv_path = os.path.join(plugin_dir_path, 'user_pitchdb.csv')
+    user_pitch_csv_path = os.path.join(
+        get_plugin_dir_path(),
+        'user_pitchdb.csv'
+    )
 
     custom_db_text = (
         'You can extend and overwrite pitch accent patterns using the'
@@ -309,14 +301,7 @@ def set_pitch_dialog(editor):
 
 
 def addPitchButton(buttons, editor):
-    # environment
-    collection_path = mw.col.path
-    plugin_dir_name = __name__
-
-    user_dir_path = os.path.split(collection_path)[0]
-    anki_dir_path = os.path.split(user_dir_path)[0]
-    plugin_dir_path = os.path.join(anki_dir_path, 'addons21', plugin_dir_name)
-    icon_path = os.path.join(plugin_dir_path, 'icon.png')
+    icon_path = os.path.join(get_plugin_dir_path(), 'icon.png')
 
     btn = editor.addButton(
         icon_path,
