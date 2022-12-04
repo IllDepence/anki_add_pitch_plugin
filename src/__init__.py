@@ -22,7 +22,8 @@ from ._version import __version__
 from .util import add_pitch, remove_pitch, get_accent_dict, get_note_type_ids,\
                   get_note_ids, get_user_accent_dict, select_deck_id,\
                   select_note_type_id, select_note_fields_add,\
-                  select_note_fields_del, get_plugin_dir_path
+                  select_note_fields_del, get_plugin_dir_path,\
+                  get_acc_patt, clean
 from .draw_pitch import pitch_svg
 
 
@@ -119,7 +120,7 @@ def add_pitch_dialog():
     )
 
 
-def add_pitch_dialog_user():
+def add_user_pitch_dialog():
     """ Popup explaining how to manually set pitch accent illustrations.
     """
 
@@ -180,7 +181,7 @@ def show_custom_db_path_dialog():
     )
 
 
-def remove_pitch_dialog_user():
+def remove_user_pitch_dialog():
     """ Dialog for bulk removing user added custom pitch accent
         illustrations from nodes.
     """
@@ -232,8 +233,9 @@ def remove_pitch_dialog(user_set=False):
     )
 
 
-def set_pitch_dialog(editor):
-    """ Dialog for manually setting pitch accent illustrations.
+def set_pitch_manually_dialog(editor):
+    """ Dialog for manually setting the pitch accent illustration
+        in the currently selected editor field.
     """
 
     if editor.web.editor.currentField is None:
@@ -253,6 +255,88 @@ def set_pitch_dialog(editor):
     )
     if not LH_patt_succeeded:
         return
+
+    set_pitch(editor, hira, LH_patt)
+
+
+def set_pitch_automatically(editor):
+    """ Automatically set the pitch accent illustration
+        in the currently selected editor field.
+    """
+
+    ja_patt = re.compile(
+        r'['
+        r'\u3041-\u3096'  # hiragana
+        r'\u30A0-\u30FF'  # katakana
+        r'\u3400-\u4DB5\u4E00-\u9FCB\uF900-\uFA6A'  # kanji
+        r']+'
+    )
+    all_hira_patt = re.compile(
+        r'^['
+        r'\u3041-\u3096'  # hiragana
+        r']+$'
+    )
+
+    # try to determine note fields
+    expr_guess = None
+    reading_guess = None
+    for fld, val_unesc in editor.note.items():
+        val = editor.mw.col.media.escapeImages(val_unesc)
+        ja_match = ja_patt.search(val)
+        if not ja_match:
+            # no Japanese, next
+            continue
+        if expr_guess is None:
+            # assume expression field comes before others,
+            # so only set once (and don’t overwrite later
+            # with content that might be in subsequent fields)
+            expr_guess = ja_match.group(0)  # take first match, i.e. the
+            # first continuous block of Japanese characters
+        all_hira_match = all_hira_patt.search(ja_match.group(0))
+        if all_hira_match and reading_guess is None:
+            # if first continuous block is all hiragana, treat as reading
+            # and don’t override afterwards
+            reading_guess = all_hira_match.group(0)
+        if expr_guess is not None and reading_guess is not None:
+            # found all that we needed
+            break
+    if expr_guess is None:
+        showInfo(
+            'Could not identify expression',
+            title='Card parsing failure'
+        )
+        return
+    if reading_guess is None:
+        # could imagine user that just does expr to meaning (with no
+        # field for reading) and then wants to add pitch accent illustrations
+        reading_guess = ''
+
+    # load pitch dict
+    acc_dict = get_accent_dict()
+    # load user pitch dict if present
+    acc_dict.update(
+        get_user_accent_dict()
+    )
+    patt = get_acc_patt(expr_guess, reading_guess, [acc_dict])
+    if not patt:
+        showInfo(
+            'Could not find pitch for expression “{}”'.format(
+                expr_guess
+            ),
+            title='Card parsing failure'
+        )
+        return
+    hira, LlHh_patt = patt
+    LH_patt = re.sub(r'[lh]', '', LlHh_patt)
+
+    set_pitch(editor, hira, LH_patt)
+
+
+def set_pitch(editor, hira, LH_patt):
+    """ Set the pitch accent illustration in the editor’s current
+        selected field according to the hiragana and low-high pattern
+        given.
+    """
 
     # get note data
     data = [
@@ -295,16 +379,28 @@ def set_pitch_dialog(editor):
     editor.web.eval(js)
 
 
-def addPitchButton(buttons, editor):
-    icon_path = os.path.join(get_plugin_dir_path(), 'icon.png')
+def add_set_pitch_buttons(buttons, editor):
+    """ Add pitch buttons to editor menu.
+    """
 
-    btn = editor.addButton(
-        icon_path,
-        'foo',
-        set_pitch_dialog,
-        tip='set pitch accent'
+    # manual mode
+    icon_path_m = os.path.join(get_plugin_dir_path(), 'icon_manual.png')
+    m_btn = editor.addButton(
+        icon_path_m,
+        'manualpitch',
+        set_pitch_manually_dialog,
+        tip='set pitch accent manually'
     )
-    buttons.append(btn)
+    buttons.append(m_btn)
+    # auto mode
+    icon_path_a = os.path.join(get_plugin_dir_path(), 'icon_auto.png')
+    a_btn = editor.addButton(
+        icon_path_a,
+        'autopitch',
+        set_pitch_automatically,
+        tip='set pitch accent automatically'
+    )
+    buttons.append(a_btn)
 
 
 def pre_load_pitch_data(col):
@@ -328,14 +424,14 @@ pa_menu_about = pa_menu.addAction('about')
 # add triggers
 pa_menu_add.triggered.connect(add_pitch_dialog)
 pa_menu_remove.triggered.connect(remove_pitch_dialog)
-pa_menu_add_user.triggered.connect(add_pitch_dialog_user)
-pa_menu_remove_user.triggered.connect(remove_pitch_dialog_user)
+pa_menu_add_user.triggered.connect(add_user_pitch_dialog)
+pa_menu_remove_user.triggered.connect(remove_user_pitch_dialog)
 pa_menu_custom_db_path.triggered.connect(show_custom_db_path_dialog)
 pa_menu_about.triggered.connect(about_dialog)
 # and add it to the tools menu
 mw.form.menuTools.addMenu(pa_menu)
 # add editor button
-gui_hooks.editor_did_init_buttons.append(addPitchButton)
+gui_hooks.editor_did_init_buttons.append(add_set_pitch_buttons)
 
 # # pre-load pitch accent dicts once collection is loaded
 # gui_hooks.collection_did_load.append(pre_load_pitch_data)

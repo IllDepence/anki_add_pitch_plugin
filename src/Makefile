@@ -1,5 +1,5 @@
 pysrc     := __init__.py _version.py draw_pitch.py util.py
-distfiles := $(pysrc) icon.png ../LICENSE manifest.json \
+distfiles := $(pysrc) icon_auto.png icon_manual.png ../LICENSE manifest.json \
              NOTE user_pitchdb.csv wadoku_pitchdb.csv
 version   := `grep -Po "(?<=__version__ = ')\d+\.\d+\.\d+(?=')" _version.py`
 distdir   := ./dist/$(version)/
