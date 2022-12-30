@@ -19,11 +19,12 @@ from aqt import mw, gui_hooks
 from aqt.utils import showInfo, showText, getText
 from aqt.qt import QMenu
 from ._version import __version__
+from ._constants import re_all_hira_patt
 from .util import add_pitch, remove_pitch, get_accent_dict, get_note_type_ids,\
                   get_note_ids, get_user_accent_dict, select_deck_id,\
                   select_note_type_id, select_note_fields_add,\
                   select_note_fields_del, get_plugin_dir_path,\
-                  get_acc_patt, clean
+                  get_acc_patt, clean_japanese_from_note_field
 from .draw_pitch import pitch_svg
 
 
@@ -264,35 +265,21 @@ def set_pitch_automatically(editor):
         in the currently selected editor field.
     """
 
-    ja_patt = re.compile(
-        r'['
-        r'\u3041-\u3096'  # hiragana
-        r'\u30A0-\u30FF'  # katakana
-        r'\u3400-\u4DB5\u4E00-\u9FCB\uF900-\uFA6A'  # kanji
-        r']+'
-    )
-    all_hira_patt = re.compile(
-        r'^['
-        r'\u3041-\u3096'  # hiragana
-        r']+$'
-    )
-
     # try to determine note fields
     expr_guess = None
     reading_guess = None
     for fld, val_unesc in editor.note.items():
         val = editor.mw.col.media.escapeImages(val_unesc)
-        ja_match = ja_patt.search(val)
-        if not ja_match:
+        ja_expr = clean_japanese_from_note_field(val)
+        if ja_expr is None:
             # no Japanese, next
             continue
         if expr_guess is None:
             # assume expression field comes before others,
             # so only set once (and don’t overwrite later
             # with content that might be in subsequent fields)
-            expr_guess = ja_match.group(0)  # take first match, i.e. the
-            # first continuous block of Japanese characters
-        all_hira_match = all_hira_patt.search(ja_match.group(0))
+            expr_guess = ja_expr
+        all_hira_match = re_all_hira_patt.search(ja_expr)
         if all_hira_match and reading_guess is None:
             # if first continuous block is all hiragana, treat as reading
             # and don’t override afterwards

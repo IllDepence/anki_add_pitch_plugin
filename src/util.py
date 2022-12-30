@@ -9,6 +9,8 @@ from aqt.utils import Qt, QDialog, QVBoxLayout, QLabel, QListWidget,\
 from anki.utils import stripHTML
 from functools import lru_cache
 from .draw_pitch import pitch_svg
+from ._constants import re_ja_patt, re_hira_patt, re_variation_selectors_patt,\
+                        re_bracketed_content_patt
 
 
 def get_plugin_dir_path():
@@ -218,20 +220,53 @@ def select_note_fields_del(note_type_id):
     return del_idx
 
 
-def clean(s):
-    # remove HTML
-    s = stripHTML(s)
-    # remove everyhing in brackets
-    s = re.sub(r'[\[\(\{][^\]\)\}]*[\]\)\}]', '', s)
-    return s.strip()
+def remove_bracketed_content(dirty):
+    """ Remove backets and their contents.
+    """
+
+    clean = re_bracketed_content_patt.sub('', dirty)
+    return clean
+
+
+def remove_variation_selectors(dirty):
+    """ Remove backets and their contents.
+    """
+
+    clean = re_variation_selectors_patt.sub('', dirty)
+    return clean
+
+
+def clean_japanese_from_note_field(dirty):
+    """ Perform heuristic cleaning of an note field and return
+        - the first consecutive string of Japanese if present
+        - None otherwise
+    """
+
+    # heuristic cleaning
+    no_html = stripHTML(dirty)
+    no_brack_html = remove_bracketed_content(no_html)
+    no_varsel_brack_html = remove_variation_selectors(no_brack_html)
+    # look for Japanese writing in expression field
+    ja_match = re_ja_patt.search(no_varsel_brack_html)
+    if ja_match:
+        # return rist consecutive match
+        return ja_match.group(0)
+    # no Japanese text in field
+    return None
 
 
 def get_acc_patt(expr_field, reading_field, dicts):
+    """ Determine the accept pattern for a note given its
+        - expression field
+        - reading field
+        - accent pattern dictionaries to use for lookup
+    """
+
     def select_best_patt(reading_field, patts):
         best_pos = 9001
         best = patts[0]  # default
         for patt in patts:
-            hira, p = patt
+            hira, _ = patt
             try:
                 pos = reading_field.index(hira)
                 if pos < best_pos:
@@ -240,22 +275,20 @@ def get_acc_patt(expr_field, reading_field, dicts):
             except ValueError:
                 continue
         return best
-    expr_field = clean(expr_field)
-    reading_field = clean(reading_field)
-    if len(expr_field) == 0:
+    expr_guess = clean_japanese_from_note_field(expr_field)
+    if expr_guess is None:
         return False
+    # look for hiragana in reading field
+    hira_match = re_hira_patt.search(reading_field)
+    if hira_match:
+        reading_guess = hira_match.group(0)
+    else:
+        reading_guess = ''
+    # dictionary lookup
     for dic in dicts:
-        patts = dic.get(expr_field, False)
+        patts = dic.get(expr_guess, False)
         if patts:
-            return select_best_patt(reading_field, patts)
-        guess = expr_field.split(' ')[0]
-        patts = dic.get(guess, False)
-        if patts:
-            return select_best_patt(reading_field, patts)
-        guess = re.sub('[<&]', ' ', expr_field).split(' ')[0]
-        patts = dic.get(guess, False)
-        if patts:
-            return select_best_patt(reading_field, patts)
+            return select_best_patt(reading_guess, patts)
     return False
 
 
@@ -371,6 +404,16 @@ def clean_orth(orth):
         dictionary).
     """
 
-    orth = re.sub('[()△×･〈〉{}]', '', orth)  #
-    orth = orth.replace('…', '〜')  # change depending on what you use
+    # remove characters used in Wadoku orthography notation
+    # that likely won't appear on Anki cards
+    orth = re.sub('[()△×･〈〉{}]', '', orth)
+    # change affix indicator from ellipsis (as used in Wadoku)
+    # to wave dash (as used by the author in Anki)
+    # (NOTE: the current preprocessing used for Japanese expressions
+    #  is done in clean_japanese_from_note_field using the pattern
+    #  re_ja_patt, which does not include '…' and '〜'. This means
+    #  the replacement below does have no effect. Keeping it in for
+    #  the moment anyway in case affix markers become relevant in
+    #  the future)
+    orth = orth.replace('…', '〜')
     return orth
