@@ -6,11 +6,34 @@ import re
 from aqt import mw
 from aqt.utils import Qt, QDialog, QVBoxLayout, QLabel, QListWidget,\
                       QDialogButtonBox
-from anki.utils import stripHTML
+from anki.utils import strip_html
 from functools import lru_cache
 from .draw_pitch import pitch_svg
 from ._constants import re_ja_patt, re_hira_patt, re_variation_selectors_patt,\
                         re_bracketed_content_patt
+
+
+def get_qt_version():
+    """ Return the version of Qt used by Anki.
+    """
+
+    qt_ver = 5  # assume 5 for now
+
+    if Qt.__module__ == 'PyQt5.QtCore':
+        # PyQt5
+        # tested on aqt[qt5]
+        qt_ver = 5
+    elif Qt.__module__ == 'PyQt6.QtCore':
+        # PyQt6
+        # tested on aqt[qt6]
+        qt_ver = 6
+
+    # NOTE
+    # when Anki runs with the temporary Qt5 compatibility
+    # shims, Qt.__module__ is 'PyQt6.sip.wrappertype', but
+    # then it should also be no problem to defer to 5
+
+    return qt_ver
 
 
 def get_plugin_dir_path():
@@ -35,7 +58,10 @@ def customChooseList(msg, choices, startrow=0):
 
     parent = mw.app.activeWindow()
     d = QDialog(parent)
-    d.setWindowModality(Qt.WindowModal)
+    if get_qt_version() == 6:
+        d.setWindowModality(Qt.WindowModality.WindowModal)
+    else:
+        d.setWindowModality(Qt.WindowModal)
     # d.setWindowTitle('TODO'  # added
     l = QVBoxLayout()
     d.setLayout(l)
@@ -45,13 +71,20 @@ def customChooseList(msg, choices, startrow=0):
     c.addItems(choices)
     c.setCurrentRow(startrow)
     l.addWidget(c)
-    buts = QDialogButtonBox.Ok | QDialogButtonBox.Cancel
+    if get_qt_version() == 6:
+        buts = QDialogButtonBox.StandardButton.Ok | \
+               QDialogButtonBox.StandardButton.Cancel
+    else:
+        buts = QDialogButtonBox.Ok | QDialogButtonBox.Cancel
     bb = QDialogButtonBox(buts)
     l.addWidget(bb)
     bb.accepted.connect(d.accept)
     bb.rejected.connect(d.reject)
     l.addWidget(bb)
-    ret = d.exec_()  # 1 if Ok, 0 if Cancel or window closed
+    if get_qt_version() == 6:
+        ret = d.exec()  # 1 if Ok, 0 if Cancel or window closed
+    else:
+        ret = d.exec_()  # 1 if Ok, 0 if Cancel or window closed
     if ret == 0:
         return None  # can't be False b/c False == 0
     return c.currentRow()
@@ -243,7 +276,7 @@ def clean_japanese_from_note_field(dirty):
     """
 
     # heuristic cleaning
-    no_html = stripHTML(dirty)
+    no_html = strip_html(dirty)
     no_brack_html = remove_bracketed_content(no_html)
     no_varsel_brack_html = remove_variation_selectors(no_brack_html)
     # look for Japanese writing in expression field
