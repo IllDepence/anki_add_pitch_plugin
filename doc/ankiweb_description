@@ -50,10 +50,11 @@ If you’re using <b>night mode</b>, use the following style to invert the pitch
 }
 </code>
 
+This add-on shows pitch accents for original forms of all the words in a given sentence separately.
+
 <b>—————&lt;[　L I M I T A T I O N S　]&gt;—————</b>
-① Does only support words (and some expressions), but not whole sentences.
-② If the field in a card with the Japanese expression contains additional text, pitch accent lookup might fail (e.g. “&lt;数字&gt;頭” in a card for the counter of large animals).
-③ When an expression has several possible readings (e.g. 汚れ) the script tries to determine which one is used by inspecting the reading field of the card. This does not always work.
+① When an expression has several possible readings (e.g. 汚れ) the script tries to determine which one is used by inspecting the reading field of the card. This does not always work.
+② Splitting a sentence into words may produce incorrect results.
 
 
 

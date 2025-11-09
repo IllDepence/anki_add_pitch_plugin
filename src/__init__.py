@@ -9,7 +9,7 @@
 """
 
 __author__ = 'Tarek Saier'
-__credits__ = ['kclisp', 'Peter Maxwell']
+__credits__ = ['kclisp', 'Peter Maxwell', 'Werryx']
 __license__ = 'MIT'
 
 import json
@@ -110,7 +110,7 @@ def add_pitch_dialog():
         'done :)\n'
         'skipped {} already annotated notes\n'
         'updated {} notes\n'
-        'failed to generate {} annotations\n'
+        'failed to generate annotations in {} notes (partially or fully)\n'
         'could not find {} expressions'
     ).format(
         n_adone, n_updt, n_sfail, len(nf_lst)
@@ -266,37 +266,39 @@ def set_pitch_automatically(editor):
     """
 
     # try to determine note fields
-    expr_guess = None
-    reading_guess = None
+    expr_guess = []
+    reading_guess = []
     for fld, val_unesc in editor.note.items():
         val = editor.mw.col.media.escapeImages(val_unesc)
         ja_expr = clean_japanese_from_note_field(val)
-        if ja_expr is None:
+        if len(ja_expr) == 0:
             # no Japanese, next
             continue
-        if expr_guess is None:
+        if len(expr_guess) == 0:
             # assume expression field comes before others,
             # so only set once (and don’t overwrite later
             # with content that might be in subsequent fields)
             expr_guess = ja_expr
-        all_hira_match = re_all_hira_patt.search(ja_expr)
-        if all_hira_match and reading_guess is None:
-            # if first continuous block is all hiragana, treat as reading
-            # and don’t override afterwards
-            reading_guess = all_hira_match.group(0)
-        if expr_guess is not None and reading_guess is not None:
+        override_reading_guess = len(reading_guess) == 0
+        for ja_word in ja_expr:
+            all_hira_match = re_all_hira_patt.search(ja_expr)
+            if all_hira_match and override_reading_guess:
+                # if first continuous block is all hiragana, treat as reading
+                # and don’t override afterwards
+                reading_guess.append(all_hira_match.group(0))
+        if len(expr_guess) > 0 and len(reading_guess) > 0:
             # found all that we needed
             break
-    if expr_guess is None:
+    if len(expr_guess) == 0:
         showInfo(
             'Could not identify expression',
             title='Card parsing failure'
         )
         return
-    if reading_guess is None:
-        # could imagine user that just does expr to meaning (with no
-        # field for reading) and then wants to add pitch accent illustrations
-        reading_guess = ''
+    # could imagine user that just does expr to meaning (with no
+    # field for reading) and then wants to add pitch accent illustrations
+    while len(reading_guess) < len(expr_guess):
+        reading_guess.append('')
 
     # load pitch dict
     acc_dict = get_accent_dict()
@@ -304,8 +306,8 @@ def set_pitch_automatically(editor):
     acc_dict.update(
         get_user_accent_dict()
     )
-    patt = get_acc_patt(expr_guess, reading_guess, [acc_dict])
-    if not patt:
+    patts = get_acc_patt(' '.join(expr_guess), ' '.join(reading_guess), [acc_dict])
+    if len(patts) == 0:
         showInfo(
             'Could not find pitch for expression “{}”'.format(
                 expr_guess
@@ -313,10 +315,15 @@ def set_pitch_automatically(editor):
             title='Card parsing failure'
         )
         return
-    hira, LlHh_patt = patt
-    LH_patt = re.sub(r'[lh]', '', LlHh_patt)
+    hira_list = []
+    LH_patts = []
+    for patt in patts:
+        hira, LlHh_patt = patt
+        LH_patt = re.sub(r'[lh]', '', LlHh_patt)
+        hira_list.append(hira)
+        LH_patts.append(LH_patt)
 
-    set_pitch(editor, hira, LH_patt)
+    set_pitch(editor, hira_list, LH_patt_patts)
 
 
 def set_pitch(editor, hira, LH_patt):
@@ -340,7 +347,14 @@ def set_pitch(editor, hira, LH_patt):
     old_field_val_clean = re.sub(acc_patt, '', old_field_val)
 
     # generate SVG
-    svg = pitch_svg(hira, LH_patt)
+    if isinstance(hira, list) and isinstance(LH_patt, list):
+        svg = ''
+        for i, hira_word in enumerate(hira):
+            patt = LH_patt[i]
+            svg += pitch_svg(hira_word, patt)
+    else:
+        svg = pitch_svg(hira, LH_patt)
+
     if len(old_field_val_clean) > 0:
         separator = '<br><hr><br>'
     else:
@@ -348,7 +362,7 @@ def set_pitch(editor, hira, LH_patt):
     new_field_val = (
         '{}<!-- user_accent_start -->{}{}<!-- user_accent_end -->'
         ).format(old_field_val_clean, separator, svg)
-    if hira == '' and LH_patt == '':
+    if len(hira) == 0 and len(LH_patt) == 0:
         new_field_val = old_field_val_clean
 
     # add new patt

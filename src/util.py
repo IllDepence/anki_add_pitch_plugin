@@ -3,6 +3,8 @@
 
 import os
 import re
+import sys
+import os.path
 from aqt import mw
 from aqt.utils import Qt, QDialog, QVBoxLayout, QLabel, QListWidget,\
                       QDialogButtonBox
@@ -11,6 +13,10 @@ from functools import lru_cache
 from .draw_pitch import pitch_svg
 from ._constants import re_ja_patt, re_hira_patt, re_variation_selectors_patt,\
                         re_bracketed_content_patt
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from janome.tokenizer import Tokenizer
 
 
 def get_qt_version():
@@ -254,7 +260,7 @@ def select_note_fields_del(note_type_id):
 
 
 def remove_bracketed_content(dirty):
-    """ Remove backets and their contents.
+    """ Remove brackets and their contents.
     """
 
     clean = re_bracketed_content_patt.sub('', dirty)
@@ -262,30 +268,43 @@ def remove_bracketed_content(dirty):
 
 
 def remove_variation_selectors(dirty):
-    """ Remove backets and their contents.
+    """ Remove brackets and their contents.
     """
 
     clean = re_variation_selectors_patt.sub('', dirty)
     return clean
 
 
+def tokenize_japanese(original_text: str) -> list[str]:
+    """ Splits a clean string of Japanese text into Japanese words in their original form.
+    """
+    tokenizer = Tokenizer()
+    result: list[str] = []
+    for token in tokenizer.tokenize(original_text):
+        ja_match = re_ja_patt.search(token.base_form)
+        if ja_match:
+            value: str = ja_match.group(0)
+            result.append(value)
+    return result
+
+
 def clean_japanese_from_note_field(dirty):
-    """ Perform heuristic cleaning of an note field and return
-        - the first consecutive string of Japanese if present
-        - None otherwise
+    """ Performs heuristic cleaning of an note field and returns a list of found Japanese words.
     """
 
     # heuristic cleaning
     no_html = strip_html(dirty)
     no_brack_html = remove_bracketed_content(no_html)
     no_varsel_brack_html = remove_variation_selectors(no_brack_html)
-    # look for Japanese writing in expression field
-    ja_match = re_ja_patt.search(no_varsel_brack_html)
-    if ja_match:
-        # return rist consecutive match
-        return ja_match.group(0)
-    # no Japanese text in field
-    return None
+    words = tokenize_japanese(no_varsel_brack_html)
+    ja_text = []
+    for word in words:
+        # look for Japanese writing in expression field
+        ja_match = re_ja_patt.search(word)
+        if ja_match:
+            value = ja_match.group(0)
+            ja_text.append(value)
+    return ja_text
 
 
 def get_acc_patt(expr_field, reading_field, dicts):
@@ -309,7 +328,7 @@ def get_acc_patt(expr_field, reading_field, dicts):
                 continue
         return best
     expr_guess = clean_japanese_from_note_field(expr_field)
-    if expr_guess is None:
+    if len(expr_guess) == 0:
         return False
     # look for hiragana in reading field
     hira_match = re_hira_patt.search(reading_field)
@@ -317,12 +336,15 @@ def get_acc_patt(expr_field, reading_field, dicts):
         reading_guess = hira_match.group(0)
     else:
         reading_guess = ''
-    # dictionary lookup
-    for dic in dicts:
-        patts = dic.get(expr_guess, False)
-        if patts:
-            return select_best_patt(reading_guess, patts)
-    return False
+    result = []
+    for word in expr_guess:
+        # dictionary lookup
+        for dic in dicts:
+            patts = dic.get(word, False)
+            if patts:
+                result.append(select_best_patt(reading_guess, patts))
+                break
+    return result
 
 
 def add_pitch(acc_dict, note_ids, expr_idx, reading_idx, output_idx):
@@ -334,7 +356,7 @@ def add_pitch(acc_dict, note_ids, expr_idx, reading_idx, output_idx):
     not_found_list = []
     num_updated = 0
     num_already_done = 0
-    num_svg_fail = 0
+    num_svg_fail = 0 # This variable now means number of notes with at least one SVG failure.
     for nid in note_ids:
         # set up note access
         note = mw.col.get_note(nid)
@@ -351,17 +373,22 @@ def add_pitch(acc_dict, note_ids, expr_idx, reading_idx, output_idx):
         # determine accent pattern
         expr_field = note[expr_fld].strip()
         reading_field = note[reading_fld].strip()
-        patt = get_acc_patt(expr_field, reading_field, [acc_dict])
-        if not patt:
+        patts = get_acc_patt(expr_field, reading_field, [acc_dict])
+        if patts is False or len(patts) == 0:
             not_found_list.append([nid, expr_field])
             continue
-        hira, LlHh_patt = patt
-        LH_patt = re.sub(r'[lh]', '', LlHh_patt)
-        # generate SVG for accent pattern
-        svg = pitch_svg(hira, LH_patt)
-        if not svg:
-            num_svg_fail += 1
-            continue
+        svg_fail = False
+        svg = ''
+        for patt in patts:
+            hira, LlHh_patt = patt
+            LH_patt = re.sub(r'[lh]', '', LlHh_patt)
+            # generate SVG for accent pattern
+            svg_part = pitch_svg(hira, LH_patt)
+            if not svg_part and not svg_fail:
+                num_svg_fail += 1
+                svg_fail = True
+                continue
+            svg += svg_part
         if len(note[output_fld]) > 0:
             separator = '<br><hr><br>'
         else:
