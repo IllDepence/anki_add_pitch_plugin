@@ -3,6 +3,8 @@
 
 import os
 import re
+import sys
+import os.path
 from aqt import mw
 from aqt.utils import Qt, QDialog, QVBoxLayout, QLabel, QListWidget,\
                       QDialogButtonBox
@@ -11,6 +13,10 @@ from functools import lru_cache
 from .draw_pitch import pitch_svg
 from ._constants import re_ja_patt, re_hira_patt, re_variation_selectors_patt,\
                         re_bracketed_content_patt
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from janome.tokenizer import Tokenizer
 
 
 def get_qt_version():
@@ -269,17 +275,28 @@ def remove_variation_selectors(dirty):
     return clean
 
 
+def tokenize_japanese(original_text: str) -> list[str]:
+    """ Splits a clean string of Japanese text into Japanese words in their original form.
+    """
+    tokenizer = Tokenizer()
+    result: list[str] = []
+    for token in tokenizer.tokenize(original_text):
+        ja_match = re_ja_patt.search(token.base_form)
+        if ja_match:
+            value: str = ja_match.group(0)
+            result.append(value)
+    return result
+
+
 def clean_japanese_from_note_field(dirty):
-    """ Perform heuristic cleaning of an note field and return
-        - the first consecutive string of Japanese if present
-        - None otherwise
+    """ Performs heuristic cleaning of an note field and returns a list of found Japanese words.
     """
 
     # heuristic cleaning
     no_html = strip_html(dirty)
     no_brack_html = remove_bracketed_content(no_html)
     no_varsel_brack_html = remove_variation_selectors(no_brack_html)
-    words = no_varsel_brack_html.split()
+    words = tokenize_japanese(no_varsel_brack_html)
     ja_text = []
     for word in words:
         # look for Japanese writing in expression field
@@ -357,7 +374,7 @@ def add_pitch(acc_dict, note_ids, expr_idx, reading_idx, output_idx):
         expr_field = note[expr_fld].strip()
         reading_field = note[reading_fld].strip()
         patts = get_acc_patt(expr_field, reading_field, [acc_dict])
-        if len(patts) == 0:
+        if patts is False or len(patts) == 0:
             not_found_list.append([nid, expr_field])
             continue
         svg_fail = False
