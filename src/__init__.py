@@ -15,6 +15,7 @@ __license__ = "MIT"
 import json
 import os
 import re
+import sys
 from aqt import mw, gui_hooks
 from aqt.utils import showInfo, showText, getText
 from aqt.qt import QMenu
@@ -371,6 +372,18 @@ pa_menu_add_user = pa_menu.addAction("manually add/edit/remove")
 pa_menu_remove_user = pa_menu.addAction("remove all manually set")
 pa_menu_custom_db_path = pa_menu.addAction("show custom DB path")
 pa_menu_about = pa_menu.addAction("about")
+if not (
+    pa_menu
+    and pa_menu_add
+    and pa_menu_remove
+    and pa_menu_add_user
+    and pa_menu_remove_user
+    and pa_menu_custom_db_path
+    and pa_menu_about
+):
+    # exit if any of the above could not be created
+    sys.exit(1)
+
 # add triggers
 pa_menu_add.triggered.connect(add_pitch_dialog)
 pa_menu_remove.triggered.connect(remove_pitch_dialog)
@@ -378,8 +391,10 @@ pa_menu_add_user.triggered.connect(add_user_pitch_dialog)
 pa_menu_remove_user.triggered.connect(remove_user_pitch_dialog)
 pa_menu_custom_db_path.triggered.connect(show_custom_db_path_dialog)
 pa_menu_about.triggered.connect(about_dialog)
+
 # and add it to the tools menu
 mw.form.menuTools.addMenu(pa_menu)
+
 # add editor button
 gui_hooks.editor_did_init_buttons.append(add_set_pitch_buttons)
 
