@@ -105,13 +105,15 @@ def pitch_svg(word, patt, silent=False):
 
     circles = ""
     paths = ""
-    prev_center = (None, None)
     for pos, accent in enumerate(patt):
         x_center = margin_lr + (pos * step_width)
         if accent in ["H", "h", "1", "2"]:
             y_center = 5
         elif accent in ["L", "l", "0"]:
             y_center = 30
+        else:
+            # in case of an invalid accent mark, annotate in the center
+            y_center = 17.5
         circles += circle(x_center, y_center, pos >= len(mora))
         if pos > 0:
             if prev_center[1] == y_center:
