@@ -1,13 +1,20 @@
 import sys
+from .types import (
+    KanaStr,
+    MoraList,
+    PitchAccentNotationPerMora,
+    SvgStr,
+    PitchChangeDirection,
+)
 
 
-def hira_to_mora(hira):
+def hira_to_mora(hira: KanaStr) -> MoraList:
     """Example:
     in:  'しゅんかしゅうとう'
     out: ['しゅ', 'ん', 'か', 'しゅ', 'う', 'と', 'う']
     """
 
-    mora_arr = []
+    mora_arr: MoraList = []
     combiners = [
         "ゃ",
         "ゅ",
@@ -30,51 +37,61 @@ def hira_to_mora(hira):
     i = 0
     while i < len(hira):
         if i + 1 < len(hira) and hira[i + 1] in combiners:
-            mora_arr.append("{}{}".format(hira[i], hira[i + 1]))
+            mora: KanaStr = KanaStr("{}{}".format(hira[i], hira[i + 1]))
+            mora_arr.append(mora)
             i += 2
         else:
-            mora_arr.append(hira[i])
+            mora: KanaStr = KanaStr(hira[i])
+            mora_arr.append(mora)
             i += 1
     return mora_arr
 
 
-def circle(x, y, o=False):
+def circle(x: int, y: int, o: bool = False) -> SvgStr:
     r = ('<circle r="5" cx="{}" cy="{}" style="opacity:1;fill:#000;" />').format(x, y)
     if o:
         r += (
             '<circle r="3.25" cx="{}" cy="{}" style="opacity:1;fill:#fff;"' "/>"
         ).format(x, y)
-    return r
+    return SvgStr(r)
 
 
-def text(x, mora):
+def text(x: int, mora: KanaStr) -> SvgStr:
     # letter positioning tested with Noto Sans CJK JP
     if len(mora) == 1:
-        return (
-            '<text x="{}" y="67.5" style="font-size:20px;font-family:sans-'
-            'serif;fill:#000;">{}</text>'
-        ).format(x, mora)
+        return SvgStr(
+            (
+                '<text x="{}" y="67.5" style="font-size:20px;font-family:sans-'
+                'serif;fill:#000;">{}</text>'
+            ).format(x, mora)
+        )
     else:
-        return (
-            '<text x="{}" y="67.5" style="font-size:20px;font-family:sans-'
-            'serif;fill:#000;">{}</text><text x="{}" y="67.5" style="font-'
-            'size:14px;font-family:sans-serif;fill:#000;">{}</text>'
-        ).format(x - 5, mora[0], x + 12, mora[1])
+        return SvgStr(
+            (
+                '<text x="{}" y="67.5" style="font-size:20px;font-family:sans-'
+                'serif;fill:#000;">{}</text><text x="{}" y="67.5" style="font-'
+                'size:14px;font-family:sans-serif;fill:#000;">{}</text>'
+            ).format(x - 5, mora[0], x + 12, mora[1])
+        )
 
 
-def path(x, y, typ, step_width):
+def path(x: int, y: int, typ: PitchChangeDirection, step_width: int) -> SvgStr:
     if typ == "s":  # straight
         delta = "{},0".format(step_width)
     elif typ == "u":  # up
         delta = "{},-25".format(step_width)
     elif typ == "d":  # down
         delta = "{},25".format(step_width)
-    return (
-        '<path d="m {},{} {}" style="fill:none;stroke:#000;stroke-width' ':1.5;" />'
-    ).format(x, y, delta)
+    return SvgStr(
+        (
+            '<path d="m {},{} {}" style="fill:none;stroke:#000;stroke-width' ':1.5;" />'
+        ).format(x, y, delta)
+    )
 
 
-def pitch_svg(word, patt, silent=False):
+def pitch_svg(
+    word: KanaStr, patt: PitchAccentNotationPerMora, silent: bool = False
+) -> SvgStr:
     """Draw pitch accent patterns in SVG
 
     Examples:
@@ -89,14 +106,16 @@ def pitch_svg(word, patt, silent=False):
         print(
             ("pattern should be number of morae + 1 (got: {}, {})").format(word, patt)
         )
-    positions = max(len(mora), len(patt))
-    step_width = 35
-    margin_lr = 16
-    svg_width = max(0, ((positions - 1) * step_width) + (margin_lr * 2))
+    positions: int = max(len(mora), len(patt))
+    step_width: int = 35
+    margin_lr: int = 16
+    svg_width: int = max(0, ((positions - 1) * step_width) + (margin_lr * 2))
 
-    svg = (
-        '<svg class="pitch" width="{0}px" height="75px" viewBox="0 0 {0} 75' '">'
-    ).format(svg_width)
+    svg = SvgStr(
+        (
+            '<svg class="pitch" width="{0}px" height="75px" viewBox="0 0 {0} 75' '">'
+        ).format(svg_width)
+    )
 
     chars = ""
     for pos, mor in enumerate(mora):
@@ -113,7 +132,7 @@ def pitch_svg(word, patt, silent=False):
             y_center = 30
         else:
             # in case of an invalid accent mark, annotate in the center
-            y_center = 17.5
+            y_center = 17
         circles += circle(x_center, y_center, pos >= len(mora))
         if pos > 0:
             if prev_center[1] == y_center:
@@ -130,11 +149,14 @@ def pitch_svg(word, patt, silent=False):
     svg += circles
     svg += "</svg>"
 
-    return svg
+    return SvgStr(svg)
 
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
         print("usage: python3 draw_pitch.py <word> <patt>")
         sys.exit()
-    print(pitch_svg(sys.argv[1], sys.argv[2], silent=True))
+
+    word: KanaStr = KanaStr(sys.argv[1])
+    patt: PitchAccentNotationPerMora = PitchAccentNotationPerMora(sys.argv[2])
+    print(pitch_svg(word, patt, silent=True))

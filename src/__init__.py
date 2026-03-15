@@ -37,16 +37,17 @@ from .util import (
     clean_japanese_from_note_field,
 )
 from .draw_pitch import pitch_svg
+from .types import HiraganaStr
 
 
-def about_dialog():
+def about_dialog() -> None:
     """Popup displaying information about the add-on."""
 
-    gh_link = "https://github.com/IllDepence/anki_add_pitch_plugin"
-    aw_link = "https://ankiweb.net/shared/info/148002038"
-    license_link = gh_link + "/blob/master/LICENSE"
+    gh_link: str = "https://github.com/IllDepence/anki_add_pitch_plugin"
+    aw_link: str = "https://ankiweb.net/shared/info/148002038"
+    license_link: str = gh_link + "/blob/master/LICENSE"
 
-    info_text = (
+    info_text: str = (
         "<center>"
         "<h3>Japanese Pitch Accent</h3>"
         "<p><b>Version</b><br>{version}</p>"
@@ -78,7 +79,7 @@ def about_dialog():
     )
 
 
-def add_pitch_dialog():
+def add_pitch_dialog() -> None:
     """Dialog for bulk adding pitch accent illustrations to notes."""
 
     # load pitch dict
@@ -106,7 +107,7 @@ def add_pitch_dialog():
         showInfo("No cards found for selected note type.")
         return
     expr_idx, rdng_idx, out_idx = select_note_fields_add(note_type_id)
-    if None in [expr_idx, rdng_idx, out_idx]:
+    if expr_idx is None or rdng_idx is None or out_idx is None:
         return
 
     # extend notes
@@ -258,7 +259,7 @@ def set_pitch_automatically(editor):
         if all_hira_match and reading_guess is None:
             # if first continuous block is all hiragana, treat as reading
             # and don’t override afterwards
-            reading_guess = all_hira_match.group(0)
+            reading_guess = HiraganaStr(all_hira_match.group(0))
         if expr_guess is not None and reading_guess is not None:
             # found all that we needed
             break
@@ -268,7 +269,7 @@ def set_pitch_automatically(editor):
     if reading_guess is None:
         # could imagine user that just does expr to meaning (with no
         # field for reading) and then wants to add pitch accent illustrations
-        reading_guess = ""
+        reading_guess = HiraganaStr("")
 
     # load pitch dict
     acc_dict = get_accent_dict()
