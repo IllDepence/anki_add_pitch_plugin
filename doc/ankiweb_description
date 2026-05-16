@@ -6,17 +6,17 @@ Automatically adds pitch accent information to cards.
 <b>—————&lt;[　B A S I C　U S A G E　]&gt;—————</b>
 
 ① Tools → Pitch Accent → bulk add
-<img src="https://raw.githubusercontent.com/IllDepence/anki_add_pitch_plugin/master/doc/ankiweb_img/menu.jpg">
+<img src="https://raw.githubusercontent.com/IllDepence/anki_add_pitch_plugin/master/doc/ankiweb_img/menu.png">
 
 ② Choose a deck
 ③ Select a note type (is skipped if whole deck is one note type)
 ④ Select the field containing the Japanese expression
-<img src="https://raw.githubusercontent.com/IllDepence/anki_add_pitch_plugin/master/doc/ankiweb_img/dialog_1.jpg">
+<img src="https://raw.githubusercontent.com/IllDepence/anki_add_pitch_plugin/master/doc/ankiweb_img/dialog_1.png">
 
 ⑤ Select the field containing the reading
 ⑥ Select the field to which the pitch accent info will be added
 ⑦ Done
-<img src="https://raw.githubusercontent.com/IllDepence/anki_add_pitch_plugin/master/doc/ankiweb_img/dialog_2.jpg">
+<img src="https://raw.githubusercontent.com/IllDepence/anki_add_pitch_plugin/master/doc/ankiweb_img/dialog_2.png">
 
 Result
 <img src="https://raw.githubusercontent.com/IllDepence/anki_add_pitch_plugin/master/doc/ankiweb_img/output.jpg">
