@@ -1,4 +1,5 @@
 import sys
+from typing import Tuple
 from .types import (
     KanaStr,
     MoraList,
@@ -24,13 +25,14 @@ def hira_to_mora(hira: KanaStr) -> MoraList:
     # fmt: on
 
     i = 0
+    mora: KanaStr
     while i < len(hira):
         if i + 1 < len(hira) and hira[i + 1] in combiners:
-            mora: KanaStr = KanaStr("{}{}".format(hira[i], hira[i + 1]))
+            mora = KanaStr("{}{}".format(hira[i], hira[i + 1]))
             mora_arr.append(mora)
             i += 2
         else:
-            mora: KanaStr = KanaStr(hira[i])
+            mora = KanaStr(hira[i])
             mora_arr.append(mora)
             i += 1
     return mora_arr
@@ -100,19 +102,19 @@ def pitch_svg(
     margin_lr: int = 16
     svg_width: int = max(0, ((positions - 1) * step_width) + (margin_lr * 2))
 
-    svg = SvgStr(
-        (
-            '<svg class="pitch" width="{0}px" height="75px" viewBox="0 0 {0} 75' '">'
-        ).format(svg_width)
-    )
+    svg: str = (
+        '<svg class="pitch" width="{0}px" height="75px" viewBox="0 0 {0} 75' '">'
+    ).format(svg_width)
 
-    chars = ""
+    chars: str = ""
     for pos, mor in enumerate(mora):
         x_center = margin_lr + (pos * step_width)
         chars += text(x_center - 11, mor)
 
-    circles = ""
-    paths = ""
+    circles: str = ""
+    paths: str = ""
+    prev_center: Tuple[int, int]
+    path_typ: PitchChangeDirection
     for pos, accent in enumerate(patt):
         x_center = margin_lr + (pos * step_width)
         if accent in ["H", "h", "1", "2"]:
