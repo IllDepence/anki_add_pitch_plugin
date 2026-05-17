@@ -10,7 +10,6 @@ from anki.cards import CardId
 from anki.notes import Note, NoteId
 from anki.models import NotetypeId, NotetypeDict
 from functools import lru_cache
-from typing import List
 from .draw_pitch import pitch_svg
 from .types import (
     KanaStr,
@@ -164,12 +163,12 @@ def get_accent_dict(path: str | None = None) -> AccentDict:
             # hz = line_parts[2]
             # accs_txt = line_parts[3]
             patts_txt: str = line_parts[4]
-            orth_txts: List[ExpressionStr] = [
+            orth_txts: list[ExpressionStr] = [
                 ExpressionStr(s) for s in orths_txt.split("\u241f")
             ]
             if clean_orth(orth_txts[0]) != orth_txts[0]:
                 orth_txts = [clean_orth(orth_txts[0])] + orth_txts
-            patts: List[PitchAccentNotationPerCharacter] = [
+            patts: list[PitchAccentNotationPerCharacter] = [
                 PitchAccentNotationPerCharacter(s) for s in patts_txt.split(",")
             ]
             patt_common = patts[0]  # TODO: extend to support variants?

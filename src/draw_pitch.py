@@ -1,5 +1,4 @@
 import sys
-from typing import Tuple
 from .types import (
     KanaStr,
     MoraList,
@@ -113,7 +112,7 @@ def pitch_svg(
 
     circles: str = ""
     paths: str = ""
-    prev_center: Tuple[int, int]
+    prev_center: tuple[int, int]
     path_typ: PitchChangeDirection
     for pos, accent in enumerate(patt):
         x_center = margin_lr + (pos * step_width)
