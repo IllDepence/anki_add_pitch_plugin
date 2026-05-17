@@ -73,9 +73,9 @@ def about_dialog() -> None:
     showText(
         info_text,
         title="About",
-        type="rich",
-        minWidth=0,
-        minHeight=0,
+        type="html",
+        minWidth=200,
+        minHeight=340,
     )
 
 
