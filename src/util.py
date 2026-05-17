@@ -437,7 +437,9 @@ def add_pitch(
     return not_found_list, num_updated, num_already_done, num_svg_fail
 
 
-def remove_pitch(note_ids, del_idx, user_set=False):
+def remove_pitch(
+    note_ids: list[NoteId], del_idx: int, user_set: bool = False
+) -> tuple[int, int]:
     """Remove pitch accent illustrations from a specified field.
 
     Returns stats on how that went.
