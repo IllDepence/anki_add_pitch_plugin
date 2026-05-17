@@ -15,24 +15,13 @@ def hira_to_mora(hira: KanaStr) -> MoraList:
     """
 
     mora_arr: MoraList = []
+    # below is more readable in two lines; don't auto-format
+    # fmt: off
     combiners = [
-        "ゃ",
-        "ゅ",
-        "ょ",
-        "ぁ",
-        "ぃ",
-        "ぅ",
-        "ぇ",
-        "ぉ",
-        "ャ",
-        "ュ",
-        "ョ",
-        "ァ",
-        "ィ",
-        "ゥ",
-        "ェ",
-        "ォ",
+        "ゃ", "ゅ", "ょ", "ぁ", "ぃ", "ぅ", "ぇ", "ぉ",
+        "ャ", "ュ", "ョ", "ァ", "ィ", "ゥ", "ェ", "ォ",
     ]
+    # fmt: on
 
     i = 0
     while i < len(hira):
