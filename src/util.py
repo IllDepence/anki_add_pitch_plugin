@@ -10,12 +10,14 @@ from anki.cards import CardId
 from anki.notes import Note, NoteId
 from anki.models import NotetypeId, NotetypeDict
 from functools import lru_cache
+from typing import List
 from .draw_pitch import pitch_svg
 from .types import (
+    KanaStr,
     HiraganaStr,
-    KatakanaStr,
     ExpressionStr,
     PitchAccentDisplayKana,
+    PitchAccentNotation,
     PitchAccentNotationPerCharacter,
     PitchAccentNotationPerMora,
     ReadingWithPitchPattern,
@@ -153,21 +155,23 @@ def get_accent_dict(path: str | None = None) -> AccentDict:
         # load the default pitch accent dict
         path = os.path.join(get_plugin_dir_path(), "wadoku_pitchdb.csv")
 
-    acc_dict: dict[str, list[tuple[str, str]]] = {}
+    acc_dict: AccentDict = {}
     with open(path, encoding="utf8") as f:
         for line in f:
             line_parts = line.strip().split("\u241e")
-            orths_txt: ExpressionStr = ExpressionStr(line_parts[0])
-            hira: HiraganaStr = HiraganaStr(line_parts[1])
+            orths_txt: str = line_parts[0]
+            hira: KanaStr = KanaStr(line_parts[1])
             # hz = line_parts[2]
             # accs_txt = line_parts[3]
-            patts_txt: PitchAccentNotationPerCharacter = (
-                PitchAccentNotationPerCharacter(line_parts[4])
-            )
-            orth_txts = orths_txt.split("\u241f")
+            patts_txt: str = line_parts[4]
+            orth_txts: List[ExpressionStr] = [
+                ExpressionStr(s) for s in orths_txt.split("\u241f")
+            ]
             if clean_orth(orth_txts[0]) != orth_txts[0]:
                 orth_txts = [clean_orth(orth_txts[0])] + orth_txts
-            patts = patts_txt.split(",")
+            patts: List[PitchAccentNotationPerCharacter] = [
+                PitchAccentNotationPerCharacter(s) for s in patts_txt.split(",")
+            ]
             patt_common = patts[0]  # TODO: extend to support variants?
             if is_katakana(orth_txts[0]):
                 hira = hira_to_kata(hira)
@@ -193,10 +197,13 @@ def get_user_accent_dict(path: str | None = None) -> AccentDict:
         if not os.path.isfile(path):
             return {}
 
-    acc_dict: dict[str, list[tuple[str, str]]] = {}
+    acc_dict: AccentDict = {}
     with open(path, encoding="utf8") as f:
         for line in f:
-            orth, hira, patt = line.strip().split("\t")
+            line_parts = line.strip().split("\t")
+            orth: ExpressionStr = ExpressionStr(line_parts[0])
+            hira: KanaStr = KanaStr(line_parts[1])
+            patt: PitchAccentNotationPerMora = PitchAccentNotationPerMora(line_parts[2])
             if orth in acc_dict:
                 acc_dict[orth].append((hira, patt))
             else:
@@ -411,7 +418,7 @@ def add_pitch(
             not_found_list.append((nid, expr_field))
             continue
         hira: PitchAccentDisplayKana = patt[0]
-        LlHh_patt: PitchAccentNotationPerCharacter = patt[1]
+        LlHh_patt: PitchAccentNotation = patt[1]
         LH_patt: PitchAccentNotationPerMora = char_lvl_patt_to_mora_lvl_patt(LlHh_patt)
         # generate SVG for accent pattern
         svg = pitch_svg(hira, LH_patt)
@@ -468,10 +475,10 @@ def remove_pitch(note_ids, del_idx, user_set=False):
     return num_already_done, num_updated
 
 
-def hira_to_kata(s: HiraganaStr) -> KatakanaStr:
-    """Convert hiragana to katakana."""
+def hira_to_kata(s: KanaStr) -> KanaStr:
+    """Convert all hiragana in a string to katakana."""
 
-    return KatakanaStr(
+    return KanaStr(
         "".join([chr(ord(ch) + 96) if ("ぁ" <= ch <= "ゔ") else ch for ch in s])
     )
 
@@ -489,11 +496,12 @@ def is_katakana(s: str) -> bool:
 
 
 def char_lvl_patt_to_mora_lvl_patt(
-    c_patt: PitchAccentNotationPerCharacter,
+    c_patt: PitchAccentNotation,
 ) -> PitchAccentNotationPerMora:
     """Convert a character level pitch accent notation to a
     mora level pitch accent notation, by removing all lower case
-    "l" and "h" characters.
+    "l" and "h" characters. (If the input is already a mora level
+    pattern it is returned as is.)
 
     Example:
     旬（しゅん）
@@ -504,7 +512,7 @@ def char_lvl_patt_to_mora_lvl_patt(
     return PitchAccentNotationPerMora(re.sub(r"[lh]", "", c_patt))
 
 
-def clean_orth(orth: str) -> str:
+def clean_orth(orth: str) -> ExpressionStr:
     """Remove symbols from a string (used such that the remainder
     ideally is a clean word that can be looked up in the
     dictionary).
@@ -522,4 +530,4 @@ def clean_orth(orth: str) -> str:
     #  the moment anyway in case affix markers become relevant in
     #  the future)
     orth = orth.replace("…", "〜")
-    return orth
+    return ExpressionStr(orth)
