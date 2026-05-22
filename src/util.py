@@ -1,29 +1,45 @@
-""" Utility functions.
-"""
+"""Utility functions."""
 
 import os
 import re
 from aqt import mw
-from aqt.utils import Qt, QDialog, QVBoxLayout, QLabel, QListWidget,\
-                      QDialogButtonBox
+from aqt.utils import Qt, QDialog, QVBoxLayout, QLabel, QListWidget, QDialogButtonBox
 from anki.utils import strip_html
+from anki.decks import DeckId
+from anki.cards import CardId
+from anki.notes import Note, NoteId
+from anki.models import NotetypeId, NotetypeDict
 from functools import lru_cache
 from .draw_pitch import pitch_svg
-from ._constants import re_ja_patt, re_hira_patt, re_variation_selectors_patt,\
-                        re_bracketed_content_patt
+from .types import (
+    KanaStr,
+    HiraganaStr,
+    ExpressionStr,
+    PitchAccentDisplayKana,
+    PitchAccentNotation,
+    PitchAccentNotationPerCharacter,
+    PitchAccentNotationPerMora,
+    ReadingWithPitchPattern,
+    AccentDict,
+)
+from ._constants import (
+    re_ja_patt,
+    re_hira_patt,
+    re_variation_selectors_patt,
+    re_bracketed_content_patt,
+)
 
 
-def get_qt_version():
-    """ Return the version of Qt used by Anki.
-    """
+def get_qt_version() -> int:
+    """Return the version of Qt used by Anki."""
 
-    qt_ver = 5  # assume 5 for now
+    qt_ver: int = 5  # assume 5 for now
 
-    if Qt.__module__ == 'PyQt5.QtCore':
+    if Qt.__module__ == "PyQt5.QtCore":
         # PyQt5
         # tested on aqt[qt5]
         qt_ver = 5
-    elif Qt.__module__ == 'PyQt6.QtCore':
+    elif Qt.__module__ == "PyQt6.QtCore":
         # PyQt6
         # tested on aqt[qt6]
         qt_ver = 6
@@ -36,24 +52,23 @@ def get_qt_version():
     return qt_ver
 
 
-def get_plugin_dir_path():
-    """ Determine and return the path of the plugin directory.
-    """
+def get_plugin_dir_path() -> str:
+    """Determine and return the path of the plugin directory."""
 
-    collection_path = mw.col.path
-    plugin_dir_name = __name__.split('.')[0]  # remove “.util”
+    collection_path: str = mw.col.path if mw.col else ""
+    plugin_dir_name: str = __name__.split(".")[0]  # remove “.util”
 
-    user_dir_path = os.path.split(collection_path)[0]
-    anki_dir_path = os.path.split(user_dir_path)[0]
-    plugin_dir_path = os.path.join(anki_dir_path, 'addons21', plugin_dir_name)
+    user_dir_path: str = os.path.split(collection_path)[0]
+    anki_dir_path: str = os.path.split(user_dir_path)[0]
+    plugin_dir_path: str = os.path.join(anki_dir_path, "addons21", plugin_dir_name)
 
     return plugin_dir_path
 
 
-def customChooseList(msg, choices, startrow=0):
-    """ Copy of https://github.com/ankitects/anki/blob/main/
-        qt/aqt/utils.py but with a cancel button and title
-        parameter added.
+def customChooseList(msg: str, choices: list[str], startrow: int = 0) -> int | None:
+    """Copy of https://github.com/ankitects/anki/blob/main/
+    qt/aqt/utils.py but with a cancel button and title
+    parameter added.
     """
 
     parent = mw.app.activeWindow()
@@ -72,8 +87,9 @@ def customChooseList(msg, choices, startrow=0):
     c.setCurrentRow(startrow)
     l.addWidget(c)
     if get_qt_version() == 6:
-        buts = QDialogButtonBox.StandardButton.Ok | \
-               QDialogButtonBox.StandardButton.Cancel
+        buts = (
+            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
+        )
     else:
         buts = QDialogButtonBox.Ok | QDialogButtonBox.Cancel
     bb = QDialogButtonBox(buts)
@@ -90,64 +106,71 @@ def customChooseList(msg, choices, startrow=0):
     return c.currentRow()
 
 
-def select_deck_id(msg):
-    """ UI dialog that prints <msg> as a prompt to
-        the user shows a list of all decks in the
-        collection.
-        Returns the ID of the selected deck or None
-        if dialog is cancelled.
+def select_deck_id(msg: str) -> DeckId | None:
+    """UI dialog that prints <msg> as a prompt to
+    the user shows a list of all decks in the
+    collection.
+    Returns the ID of the selected deck or None
+    if dialog is cancelled.
     """
 
+    if not mw.col:
+        return None
+
     decks = mw.col.decks.all()
-    choices = [d['name'] for d in decks]
+    choices = [d["name"] for d in decks]
     choice_idx = customChooseList(msg, choices)
     if choice_idx is None:
         return None
-    return decks[choice_idx]['id']
+    return decks[choice_idx]["id"]
 
 
-def select_note_type_id(note_type_ids):
-    """ UI dialog that prompts the user to select a
-        note type.
-        Returns the ID of the selected name type or
-        None if dialog is cancelled.
+def select_note_type_id(note_type_ids) -> NotetypeId | None:
+    """UI dialog that prompts the user to select a
+    note type.
+    Returns the ID of the selected name type or
+    None if dialog is cancelled.
     """
+
+    if not mw.col:
+        return None
 
     note_types = mw.col.models.all()
     choices = [
-        {'id': nt['id'], 'name': nt['name']}
+        {"id": nt["id"], "name": nt["name"]}
         for nt in note_types
-        if nt['id'] in note_type_ids
+        if nt["id"] in note_type_ids
     ]
-    choice_idx = customChooseList(
-        'Select a note type.',
-        [c['name'] for c in choices]
-    )
+    choice_idx = customChooseList("Select a note type.", [c["name"] for c in choices])
     if choice_idx is None:
         return None
-    return choices[choice_idx]['id']
+    return choices[choice_idx]["id"]
 
 
 @lru_cache(maxsize=1)
-def get_accent_dict(path=None):
+def get_accent_dict(path: str | None = None) -> AccentDict:
 
     if path is None:
         # load the default pitch accent dict
-        path = os.path.join(
-            get_plugin_dir_path(),
-            'wadoku_pitchdb.csv'
-        )
+        path = os.path.join(get_plugin_dir_path(), "wadoku_pitchdb.csv")
 
-    acc_dict = {}
-    with open(path, encoding='utf8') as f:
+    acc_dict: AccentDict = {}
+    with open(path, encoding="utf8") as f:
         for line in f:
-            orths_txt, hira, hz, accs_txt, patts_txt = line.strip().split(
-                '\u241e'
-            )
-            orth_txts = orths_txt.split('\u241f')
+            line_parts = line.strip().split("\u241e")
+            orths_txt: str = line_parts[0]
+            hira: KanaStr = KanaStr(line_parts[1])
+            # hz = line_parts[2]
+            # accs_txt = line_parts[3]
+            patts_txt: str = line_parts[4]
+            orth_txts: list[ExpressionStr] = [
+                ExpressionStr(s) for s in orths_txt.split("\u241f")
+            ]
             if clean_orth(orth_txts[0]) != orth_txts[0]:
                 orth_txts = [clean_orth(orth_txts[0])] + orth_txts
-            patts = patts_txt.split(',')
+            patts: list[PitchAccentNotationPerCharacter] = [
+                PitchAccentNotationPerCharacter(s) for s in patts_txt.split(",")
+            ]
             patt_common = patts[0]  # TODO: extend to support variants?
             if is_katakana(orth_txts[0]):
                 hira = hira_to_kata(hira)
@@ -165,21 +188,21 @@ def get_accent_dict(path=None):
 
 
 @lru_cache(maxsize=1)
-def get_user_accent_dict(path=None):
+def get_user_accent_dict(path: str | None = None) -> AccentDict:
 
     if path is None:
         # load the user custom pitch accent dict
-        path = os.path.join(
-            get_plugin_dir_path(),
-            'user_pitchdb.csv'
-        )
+        path = os.path.join(get_plugin_dir_path(), "user_pitchdb.csv")
         if not os.path.isfile(path):
             return {}
 
-    acc_dict = {}
-    with open(path, encoding='utf8') as f:
+    acc_dict: AccentDict = {}
+    with open(path, encoding="utf8") as f:
         for line in f:
-            orth, hira, patt = line.strip().split('\t')
+            line_parts = line.strip().split("\t")
+            orth: ExpressionStr = ExpressionStr(line_parts[0])
+            hira: KanaStr = KanaStr(line_parts[1])
+            patt: PitchAccentNotationPerMora = PitchAccentNotationPerMora(line_parts[2])
             if orth in acc_dict:
                 acc_dict[orth].append((hira, patt))
             else:
@@ -187,116 +210,141 @@ def get_user_accent_dict(path=None):
     return acc_dict
 
 
-def get_note_type_ids(deck_id):
-    """ Return a list of the IDs of note types used
-        in a deck.
+def get_note_type_ids(deck_id: DeckId) -> list[NotetypeId]:
+    """Return a list of the IDs of note types used
+    in a deck.
     """
 
-    card_ids = mw.col.decks.cids(deck_id)
-    note_type_ids = set(
-        [mw.col.get_card(cid).note_type()['id'] for cid in card_ids]
+    if not mw.col:
+        return []
+
+    card_ids: list[CardId] = mw.col.decks.cids(deck_id)
+    note_type_ids: set[NotetypeId] = set(
+        [mw.col.get_card(cid).note_type()["id"] for cid in card_ids]
     )
     return list(note_type_ids)
 
 
-def get_note_ids(deck_id, note_type_id):
-    """ Return a list of the IDs of notes, given a
-        deck ID and note type ID.
+def get_note_ids(deck_id: DeckId, note_type_id: NotetypeId) -> list[NoteId]:
+    """Return a list of the IDs of notes, given a
+    deck ID and note type ID.
     """
 
-    note_ids = []
+    if not mw.col:
+        return []
+
+    note_ids: list[NoteId] = []
     deck_card_ids = mw.col.decks.cids(deck_id)
     for cid in deck_card_ids:
         c = mw.col.get_card(cid)
-        if c.note_type()['id'] == note_type_id and c.nid not in note_ids:
+        if c.note_type()["id"] == note_type_id and c.nid not in note_ids:
             note_ids.append(c.nid)
     return note_ids
 
 
-def select_note_fields_add(note_type_id):
-    """ For a given note type, prompt the user to select which field
-        - contain the Japanese expression
-        - contain the reading
-        - the pitch accent should be shown in
-        and return the respective indices of those fields in the note
-        type’s list of fields.
+def select_note_fields_add(
+    note_type_id: NotetypeId,
+) -> tuple[int, int, int] | tuple[None, None, None]:
+    """For a given note type, prompt the user to select which field
+    - contain the Japanese expression
+    - contain the reading
+    - the pitch accent should be shown in
+    and return the respective indices of those fields in the note
+    type’s list of fields.
     """
 
-    choices = [nt['name'] for nt in mw.col.models.get(note_type_id)['flds']]
+    if not (mw.col and mw.col.models):
+        return None, None, None
+
+    chosen_note_type: NotetypeDict | None = mw.col.models.get(note_type_id)
+
+    if not chosen_note_type:
+        return None, None, None
+
+    choices = [nt["name"] for nt in chosen_note_type["flds"]]
     expr_idx = customChooseList(
-        'Which field contains the Japanese expression?', choices
+        "Which field contains the Japanese expression?", choices
     )
     if expr_idx is None:
         return None, None, None
-    reading_idx = customChooseList(
-        'Which field contains the reading?', choices
-    )
+    reading_idx = customChooseList("Which field contains the reading?", choices)
     if reading_idx is None:
         return None, None, None
     output_idx = customChooseList(
-        'Which field should the pitch accent be shown in?', choices
+        "Which field should the pitch accent be shown in?", choices
     )
     if output_idx is None:
         return None, None, None
     return expr_idx, reading_idx, output_idx
 
 
-def select_note_fields_del(note_type_id):
-    """ For a given note type, prompt the user to select which field
-        the pitch accent should be removed from, and return the respective
-        index of this field in the note type’s list of fields.
+def select_note_fields_del(note_type_id: NotetypeId) -> int | None:
+    """For a given note type, prompt the user to select which field
+    the pitch accent should be removed from, and return the respective
+    index of this field in the note type’s list of fields.
     """
-    choices = [nt['name'] for nt in mw.col.models.get(note_type_id)['flds']]
+
+    if not (mw.col and mw.col.models):
+        return None
+
+    chosen_note_type: NotetypeDict | None = mw.col.models.get(note_type_id)
+
+    if not chosen_note_type:
+        return None
+
+    choices = [nt["name"] for nt in chosen_note_type["flds"]]
     del_idx = customChooseList(
-        'Which field should the pitch accent be removed from?', choices
+        "Which field should the pitch accent be removed from?", choices
     )
     return del_idx
 
 
-def remove_bracketed_content(dirty):
-    """ Remove backets and their contents.
-    """
+def remove_bracketed_content(dirty: str) -> str:
+    """Remove backets and their contents."""
 
-    clean = re_bracketed_content_patt.sub('', dirty)
+    clean = re_bracketed_content_patt.sub("", dirty)
     return clean
 
 
-def remove_variation_selectors(dirty):
-    """ Remove backets and their contents.
-    """
+def remove_variation_selectors(dirty: str) -> str:
+    """Remove backets and their contents."""
 
-    clean = re_variation_selectors_patt.sub('', dirty)
+    clean = re_variation_selectors_patt.sub("", dirty)
     return clean
 
 
-def clean_japanese_from_note_field(dirty):
-    """ Perform heuristic cleaning of an note field and return
-        - the first consecutive string of Japanese if present
-        - None otherwise
+def clean_japanese_from_note_field(dirty: ExpressionStr) -> ExpressionStr | None:
+    """Perform heuristic cleaning of an note field and return
+    - the first consecutive string of Japanese if present
+    - None otherwise
     """
 
     # heuristic cleaning
-    no_html = strip_html(dirty)
-    no_brack_html = remove_bracketed_content(no_html)
-    no_varsel_brack_html = remove_variation_selectors(no_brack_html)
+    no_html: str = strip_html(dirty)
+    no_brack_html: str = remove_bracketed_content(no_html)
+    no_varsel_brack_html: str = remove_variation_selectors(no_brack_html)
     # look for Japanese writing in expression field
     ja_match = re_ja_patt.search(no_varsel_brack_html)
     if ja_match:
         # return rist consecutive match
-        return ja_match.group(0)
+        return ExpressionStr(ja_match.group(0))
     # no Japanese text in field
     return None
 
 
-def get_acc_patt(expr_field, reading_field, dicts):
-    """ Determine the accept pattern for a note given its
-        - expression field
-        - reading field
-        - accent pattern dictionaries to use for lookup
+def get_acc_patt(
+    expr_field: ExpressionStr, reading_field: HiraganaStr, dicts: list[AccentDict]
+) -> ReadingWithPitchPattern | None:
+    """Determine the accept pattern for a note given its
+    - expression field
+    - reading field
+    - accent pattern dictionaries to use for lookup
     """
 
-    def select_best_patt(reading_field, patts):
-        best_pos = 9001
+    def select_best_patt(
+        reading_field: HiraganaStr, patts: list[ReadingWithPitchPattern]
+    ) -> ReadingWithPitchPattern:
+        best_pos: int = 9001
         best = patts[0]  # default
         for patt in patts:
             hira, _ = patt
@@ -308,138 +356,172 @@ def get_acc_patt(expr_field, reading_field, dicts):
             except ValueError:
                 continue
         return best
+
     expr_guess = clean_japanese_from_note_field(expr_field)
     if expr_guess is None:
-        return False
+        return None
     # look for hiragana in reading field
     hira_match = re_hira_patt.search(reading_field)
     if hira_match:
-        reading_guess = hira_match.group(0)
+        reading_guess = HiraganaStr(hira_match.group(0))
     else:
-        reading_guess = ''
+        reading_guess = HiraganaStr("")
     # dictionary lookup
     for dic in dicts:
-        patts = dic.get(expr_guess, False)
+        patts = dic.get(expr_guess, None)
         if patts:
             return select_best_patt(reading_guess, patts)
-    return False
+    return None
 
 
-def add_pitch(acc_dict, note_ids, expr_idx, reading_idx, output_idx):
-    """ Add pitch accent illustration to notes.
+def add_pitch(
+    acc_dict: AccentDict,
+    note_ids: list[NoteId],
+    expr_idx: int,
+    reading_idx: int,
+    output_idx: int,
+):
+    """Add pitch accent illustration to notes.
 
-        Returns stats on how it went.
+    Returns stats on how it went.
     """
 
-    not_found_list = []
-    num_updated = 0
-    num_already_done = 0
-    num_svg_fail = 0
+    not_found_list: list[tuple[NoteId, ExpressionStr]] = []
+    num_updated: int = 0
+    num_already_done: int = 0
+    num_svg_fail: int = 0
+
+    if not mw.col:
+        return not_found_list, num_updated, num_already_done, num_svg_fail
+
     for nid in note_ids:
         # set up note access
-        note = mw.col.get_note(nid)
-        expr_fld = note.keys()[expr_idx]
-        reading_fld = note.keys()[reading_idx]
-        output_fld = note.keys()[output_idx]
+        note: Note = mw.col.get_note(nid)
+        expr_fld: str = note.keys()[expr_idx]
+        reading_fld: str = note.keys()[reading_idx]
+        output_fld: str = note.keys()[output_idx]
         # check for existing illustrations
-        has_auto_accent = '<!-- accent_start -->' in note[output_fld]
-        has_manual_accent = '<!-- user_accent_start -->' in note[output_fld]
+        has_auto_accent: bool = "<!-- accent_start -->" in note[output_fld]
+        has_manual_accent: bool = "<!-- user_accent_start -->" in note[output_fld]
         if has_auto_accent or has_manual_accent:
             # already has a pitch accent illustration
             num_already_done += 1
             continue
         # determine accent pattern
-        expr_field = note[expr_fld].strip()
-        reading_field = note[reading_fld].strip()
-        patt = get_acc_patt(expr_field, reading_field, [acc_dict])
+        expr_field: ExpressionStr = ExpressionStr(note[expr_fld].strip())
+        reading_field: HiraganaStr = HiraganaStr(note[reading_fld].strip())
+        patt: ReadingWithPitchPattern | None = get_acc_patt(
+            expr_field, reading_field, [acc_dict]
+        )
         if not patt:
-            not_found_list.append([nid, expr_field])
+            not_found_list.append((nid, expr_field))
             continue
-        hira, LlHh_patt = patt
-        LH_patt = re.sub(r'[lh]', '', LlHh_patt)
+        hira: PitchAccentDisplayKana = patt[0]
+        LlHh_patt: PitchAccentNotation = patt[1]
+        LH_patt: PitchAccentNotationPerMora = char_lvl_patt_to_mora_lvl_patt(LlHh_patt)
         # generate SVG for accent pattern
         svg = pitch_svg(hira, LH_patt)
         if not svg:
             num_svg_fail += 1
             continue
         if len(note[output_fld]) > 0:
-            separator = '<br><hr><br>'
+            separator = "<br><hr><br>"
         else:
-            separator = ''
+            separator = ""
         # extend and save note
-        note[output_fld] = (
-            '{}<!-- accent_start -->{}{}<!-- accent_end -->'
-            ).format(note[output_fld], separator, svg)  # add svg
+        note[output_fld] = ("{}<!-- accent_start -->{}{}<!-- accent_end -->").format(
+            note[output_fld], separator, svg
+        )  # add svg
         mw.col.update_note(note)
         num_updated += 1
     return not_found_list, num_updated, num_already_done, num_svg_fail
 
 
-def remove_pitch(note_ids, del_idx, user_set=False):
-    """ Remove pitch accent illustrations from a specified field.
+def remove_pitch(
+    note_ids: list[NoteId], del_idx: int, user_set: bool = False
+) -> tuple[int, int]:
+    """Remove pitch accent illustrations from a specified field.
 
-        Returns stats on how that went.
+    Returns stats on how that went.
     """
 
     # determine accent pattern to search for
     if user_set:
-        tag_prefix = 'user_'
+        tag_prefix = "user_"
     else:
-        tag_prefix = ''
+        tag_prefix = ""
     acc_patt = re.compile(
-        r'<!-- {}accent_start -->.+<!-- {}accent_end -->'.format(
+        r"<!-- {}accent_start -->.+<!-- {}accent_end -->".format(
             tag_prefix, tag_prefix
         ),
-        re.S
+        re.S,
     )
     num_updated = 0
     num_already_done = 0
+    if not mw.col:
+        return num_already_done, num_updated
     for nid in note_ids:
         # set up note access
         note = mw.col.get_note(nid)
         del_fld = note.keys()[del_idx]
         # check for cards w/o accent illustrations
-        if ' {}accent_start'.format(tag_prefix) not in note[del_fld]:
+        if " {}accent_start".format(tag_prefix) not in note[del_fld]:
             # has no pitch accent illustration
             num_already_done += 1
             continue
         # update and save note
-        note[del_fld] = re.sub(acc_patt, '', note[del_fld])
+        note[del_fld] = re.sub(acc_patt, "", note[del_fld])
         mw.col.update_note(note)
         num_updated += 1
     return num_already_done, num_updated
 
 
-def hira_to_kata(s):
-    """ Convert hiragana to katakana.
-    """
+def hira_to_kata(s: KanaStr) -> KanaStr:
+    """Convert all hiragana in a string to katakana."""
 
-    return ''.join(
-        [chr(ord(ch) + 96) if ('ぁ' <= ch <= 'ゔ') else ch for ch in s]
-        )
+    return KanaStr(
+        "".join([chr(ord(ch) + 96) if ("ぁ" <= ch <= "ゔ") else ch for ch in s])
+    )
 
 
-def is_katakana(s):
-    """ Determine if more than half of the characters in a
-        string are katakana.
+def is_katakana(s: str) -> bool:
+    """Determine if more than half of the characters in a
+    string are katakana.
     """
 
     num_ktkn = 0
     for ch in s:
-        if ch == 'ー' or ('ァ' <= ch <= 'ヴ'):
+        if ch == "ー" or ("ァ" <= ch <= "ヴ"):
             num_ktkn += 1
-    return num_ktkn / max(1, len(s)) > .5
+    return num_ktkn / max(1, len(s)) > 0.5
 
 
-def clean_orth(orth):
-    """ Remove symbols from a string (used such that the remainder
-        ideally is a clean word that can be looked up in the
-        dictionary).
+def char_lvl_patt_to_mora_lvl_patt(
+    c_patt: PitchAccentNotation,
+) -> PitchAccentNotationPerMora:
+    """Convert a character level pitch accent notation to a
+    mora level pitch accent notation, by removing all lower case
+    "l" and "h" characters. (If the input is already a mora level
+    pattern it is returned as is.)
+
+    Example:
+    旬（しゅん）
+    In : LlHH
+    Out: LHH
+    """
+
+    return PitchAccentNotationPerMora(re.sub(r"[lh]", "", c_patt))
+
+
+def clean_orth(orth: str) -> ExpressionStr:
+    """Remove symbols from a string (used such that the remainder
+    ideally is a clean word that can be looked up in the
+    dictionary).
     """
 
     # remove characters used in Wadoku orthography notation
     # that likely won't appear on Anki cards
-    orth = re.sub('[()△×･〈〉{}]', '', orth)
+    orth = re.sub("[()△×･〈〉{}]", "", orth)
     # change affix indicator from ellipsis (as used in Wadoku)
     # to wave dash (as used by the author in Anki)
     # (NOTE: the current preprocessing used for Japanese expressions
@@ -448,5 +530,5 @@ def clean_orth(orth):
     #  the replacement below does have no effect. Keeping it in for
     #  the moment anyway in case affix markers become relevant in
     #  the future)
-    orth = orth.replace('…', '〜')
-    return orth
+    orth = orth.replace("…", "〜")
+    return ExpressionStr(orth)
