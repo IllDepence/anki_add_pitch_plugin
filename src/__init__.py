@@ -43,6 +43,7 @@ from .types import HiraganaStr
 def about_dialog() -> None:
     """Popup displaying information about the add-on."""
 
+    contrib: str = "<br>".join(__credits__)
     gh_link: str = "https://github.com/IllDepence/anki_add_pitch_plugin"
     aw_link: str = "https://ankiweb.net/shared/info/148002038"
     license_link: str = gh_link + "/blob/master/LICENSE"
@@ -50,24 +51,16 @@ def about_dialog() -> None:
     info_text: str = (
         "<center>"
         "<h3>Japanese Pitch Accent</h3>"
-        "<p><b>Version</b><br>{version}</p>"
+        f"<p><b>Version</b><br>{__version__}</p>"
         "<p><b>License</b><br>"
-        '<a href="{license_link}">{license_name}</a>'
+        f'<a href="{license_link}">{__license__}</a>'
         "</p>"
-        "<p><b>Maintainer</b><br>{author}</p>"
-        "<p><b>Contributors</b><br>{contrib}</p>"
-        '<p><a href="{gh_link}">GitHub</a>'
+        f"<p><b>Maintainer</b><br>{__author__}</p>"
+        f"<p><b>Contributors</b><br>{contrib}</p>"
+        f'<p><a href="{gh_link}">GitHub</a>'
         "&nbsp;<b>&middot;</b>&nbsp;"
-        '<a href="{aw_link}">AnkiWeb</a></p>'
+        f'<a href="{aw_link}">AnkiWeb</a></p>'
         "</center>"
-    ).format(
-        version=__version__,
-        license_link=license_link,
-        license_name=__license__,
-        author=__author__,
-        contrib="<br>".join(__credits__),
-        gh_link=gh_link,
-        aw_link=aw_link,
     )
 
     showText(
@@ -116,11 +109,11 @@ def add_pitch_dialog() -> None:
     )
     report_text = (
         "done :)\n"
-        "skipped {} already annotated notes\n"
-        "updated {} notes\n"
-        "failed to generate {} annotations\n"
-        "could not find {} expressions"
-    ).format(n_adone, n_updt, n_sfail, len(nf_lst))
+        f"skipped {n_adone} already annotated notes\n"
+        f"updated {n_updt} notes\n"
+        f"failed to generate {n_sfail} annotations\n"
+        f"could not find {len(nf_lst)} expressions"
+    )
     showInfo(report_text, title="Bulk add results")
 
 
@@ -148,10 +141,10 @@ def add_user_pitch_dialog():
         "insert, overwrite, or remove the pitch accent.<br></p>"
         "<table><tr>"
         '<td align="left" valign="middle">'
-        '<img src="{}"></td>'
+        f'<img src="{icon_img}"></td>'
         '<td valign="middle" align="center">&nbsp;&larr; icon to look for</td>'
         "</tr></table>"
-    ).format(icon_img)
+    )
 
     showInfo(info_text, title="Manually add/edit/remove", textFormat="rich")
 
@@ -163,9 +156,9 @@ def show_custom_db_path_dialog():
 
     custom_db_text = (
         "You can extend and overwrite pitch accent patterns using the"
-        " file '{}'. The file has to be three columns (expression,"
+        f" file '{user_pitch_csv_path}'. The file has to be three columns (expression,"
         " reading, pitch accent pattern) separated by TAB characters."
-    ).format(user_pitch_csv_path)
+    )
     showInfo(custom_db_text, title="Custom DB path")
 
 
@@ -205,8 +198,10 @@ def remove_pitch_dialog(user_set=False):
     # remove from notes
     n_adone, n_updt = remove_pitch(note_ids, del_idx, user_set)
     report_text = (
-        "done :)\n" "skipped {} notes w/o accent annotation\n" "updated {} notes"
-    ).format(n_adone, n_updt)
+        "done :)\n"
+        f"skipped {n_adone} notes w/o accent annotation\n"
+        f"updated {n_updt} notes"
+    )
     showInfo(report_text, title="Bulk remove results")
 
 
@@ -278,7 +273,7 @@ def set_pitch_automatically(editor):
     patt = get_acc_patt(expr_guess, reading_guess, [acc_dict])
     if not patt:
         showInfo(
-            "Could not find pitch for expression “{}”".format(expr_guess),
+            f"Could not find pitch for expression “{expr_guess}”",
             title="Card parsing failure",
         )
         return
@@ -312,9 +307,7 @@ def set_pitch(editor, hira, LH_patt):
         separator = "<br><hr><br>"
     else:
         separator = ""
-    new_field_val = ("{}<!-- user_accent_start -->{}{}<!-- user_accent_end -->").format(
-        old_field_val_clean, separator, svg
-    )
+    new_field_val = f"{old_field_val_clean}<!-- user_accent_start -->{separator}{svg}<!-- user_accent_end -->"
     if hira == "" and LH_patt == "":
         new_field_val = old_field_val_clean
 

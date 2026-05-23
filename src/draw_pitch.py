@@ -27,7 +27,7 @@ def hira_to_mora(hira: KanaStr) -> MoraList:
     mora: KanaStr
     while i < len(hira):
         if i + 1 < len(hira) and hira[i + 1] in combiners:
-            mora = KanaStr("{}{}".format(hira[i], hira[i + 1]))
+            mora = KanaStr(f"{hira[i]}{hira[i + 1]}")
             mora_arr.append(mora)
             i += 2
         else:
@@ -38,11 +38,9 @@ def hira_to_mora(hira: KanaStr) -> MoraList:
 
 
 def circle(x: int, y: int, o: bool = False) -> SvgStr:
-    r = ('<circle r="5" cx="{}" cy="{}" style="opacity:1;fill:#000;" />').format(x, y)
+    r = f'<circle r="5" cx="{x}" cy="{y}" style="opacity:1;fill:#000;" />'
     if o:
-        r += (
-            '<circle r="3.25" cx="{}" cy="{}" style="opacity:1;fill:#fff;"' "/>"
-        ).format(x, y)
+        r += f'<circle r="3.25" cx="{x}" cy="{y}" style="opacity:1;fill:#fff;" />'
     return SvgStr(r)
 
 
@@ -51,31 +49,32 @@ def text(x: int, mora: KanaStr) -> SvgStr:
     if len(mora) == 1:
         return SvgStr(
             (
-                '<text x="{}" y="67.5" style="font-size:20px;font-family:sans-'
-                'serif;fill:#000;">{}</text>'
-            ).format(x, mora)
+                f'<text x="{x}" y="67.5" style="font-size:20px;'
+                f'font-family:sans-serif;fill:#000;">{mora}</text>'
+            )
         )
     else:
         return SvgStr(
             (
-                '<text x="{}" y="67.5" style="font-size:20px;font-family:sans-'
-                'serif;fill:#000;">{}</text><text x="{}" y="67.5" style="font-'
-                'size:14px;font-family:sans-serif;fill:#000;">{}</text>'
-            ).format(x - 5, mora[0], x + 12, mora[1])
+                f'<text x="{x - 5}" y="67.5" style="font-size:20px;'
+                f'font-family:sans-serif;fill:#000;">{mora[0]}</text>'
+                f'<text x="{x + 12}" y="67.5" style="font-size:14px;'
+                f'font-family:sans-serif;fill:#000;">{mora[1]}</text>'
+            )
         )
 
 
 def path(x: int, y: int, typ: PitchChangeDirection, step_width: int) -> SvgStr:
     if typ == "s":  # straight
-        delta = "{},0".format(step_width)
+        delta = f"{step_width},0"
     elif typ == "u":  # up
-        delta = "{},-25".format(step_width)
+        delta = f"{step_width},-25"
     elif typ == "d":  # down
-        delta = "{},25".format(step_width)
+        delta = f"{step_width},25"
     return SvgStr(
         (
-            '<path d="m {},{} {}" style="fill:none;stroke:#000;stroke-width' ':1.5;" />'
-        ).format(x, y, delta)
+            f'<path d="m {x},{y} {delta}" style="fill:none;stroke:#000;stroke-width:1.5;" />'
+        )
     )
 
 
@@ -93,17 +92,15 @@ def pitch_svg(
     mora = hira_to_mora(word)
 
     if len(patt) - len(mora) != 1 and not silent:
-        print(
-            ("pattern should be number of morae + 1 (got: {}, {})").format(word, patt)
-        )
+        print(f"pattern should be number of morae + 1 (got: {word}, {patt})")
     positions: int = max(len(mora), len(patt))
     step_width: int = 35
     margin_lr: int = 16
     svg_width: int = max(0, ((positions - 1) * step_width) + (margin_lr * 2))
 
     svg: str = (
-        '<svg class="pitch" width="{0}px" height="75px" viewBox="0 0 {0} 75' '">'
-    ).format(svg_width)
+        f'<svg class="pitch" width="{svg_width}px" height="75px" viewBox="0 0 {svg_width} 75">'
+    )
 
     chars: str = ""
     for pos, mor in enumerate(mora):
