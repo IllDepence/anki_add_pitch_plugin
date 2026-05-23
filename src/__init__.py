@@ -19,6 +19,7 @@ import sys
 from aqt import mw, gui_hooks
 from aqt.utils import showInfo, showText, getText
 from aqt.qt import QMenu
+from textwrap import dedent
 from ._version import __version__
 from ._constants import re_all_hira_patt
 from .util import (
@@ -115,7 +116,7 @@ def add_pitch_dialog() -> None:
         updated {n_updt} notes
         failed to generate {n_sfail} annotations
         could not find {len(nf_lst)} expressions"""
-    showInfo(report_text, title="Bulk add results")
+    showInfo(dedent(report_text), title="Bulk add results")
 
 
 def add_user_pitch_dialog():
@@ -209,7 +210,7 @@ def remove_pitch_dialog(user_set=False):
         done :)
         skipped {n_adone} notes w/o accent annotation
         updated {n_updt} notes"""
-    showInfo(report_text, title="Bulk remove results")
+    showInfo(dedent(report_text), title="Bulk remove results")
 
 
 def set_pitch_manually_dialog(editor):
