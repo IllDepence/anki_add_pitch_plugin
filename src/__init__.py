@@ -48,20 +48,22 @@ def about_dialog() -> None:
     aw_link: str = "https://ankiweb.net/shared/info/148002038"
     license_link: str = gh_link + "/blob/master/LICENSE"
 
-    info_text: str = (
-        "<center>"
-        "<h3>Japanese Pitch Accent</h3>"
-        f"<p><b>Version</b><br>{__version__}</p>"
-        "<p><b>License</b><br>"
-        f'<a href="{license_link}">{__license__}</a>'
-        "</p>"
-        f"<p><b>Maintainer</b><br>{__author__}</p>"
-        f"<p><b>Contributors</b><br>{contrib}</p>"
-        f'<p><a href="{gh_link}">GitHub</a>'
-        "&nbsp;<b>&middot;</b>&nbsp;"
-        f'<a href="{aw_link}">AnkiWeb</a></p>'
-        "</center>"
-    )
+    info_text: str = f"""\
+        <center>
+        <h3>Japanese Pitch Accent</h3>
+        <p><b>Version</b><br>{__version__}</p>
+        <p>
+            <b>License</b><br>
+            <a href="{license_link}">{__license__}</a>
+        </p>
+        <p><b>Maintainer</b><br>{__author__}</p>
+        <p><b>Contributors</b><br>{contrib}</p>
+        <p>
+            <a href="{gh_link}">GitHub</a>
+            &nbsp;<b>&middot;</b>&nbsp;
+            <a href="{aw_link}">AnkiWeb</a>
+        </p>
+        </center>"""
 
     showText(
         info_text,
@@ -107,13 +109,12 @@ def add_pitch_dialog() -> None:
     nf_lst, n_updt, n_adone, n_sfail = add_pitch(
         acc_dict, note_ids, expr_idx, rdng_idx, out_idx
     )
-    report_text = (
-        "done :)\n"
-        f"skipped {n_adone} already annotated notes\n"
-        f"updated {n_updt} notes\n"
-        f"failed to generate {n_sfail} annotations\n"
-        f"could not find {len(nf_lst)} expressions"
-    )
+    report_text = f"""\
+        done :)
+        skipped {n_adone} already annotated notes
+        updated {n_updt} notes
+        failed to generate {n_sfail} annotations
+        could not find {len(nf_lst)} expressions"""
     showInfo(report_text, title="Bulk add results")
 
 
@@ -135,16 +136,22 @@ def add_user_pitch_dialog():
         "CByPSIxLjYyNSIgLz4KPC9zdmc+Cg=="
     )
 
-    info_text = (
-        "<p>When adding or editing cards, click the pitch accent icon located "
-        "on the right hand side of the text formatting buttons to manually "
-        "insert, overwrite, or remove the pitch accent.<br></p>"
-        "<table><tr>"
-        '<td align="left" valign="middle">'
-        f'<img src="{icon_img}"></td>'
-        '<td valign="middle" align="center">&nbsp;&larr; icon to look for</td>'
-        "</tr></table>"
-    )
+    info_text = f"""\
+        <p>
+            When adding or editing cards, click the pitch accent icon located
+            on the right hand side of the text formatting buttons to manually
+            insert, overwrite, or remove the pitch accent.<br>
+        </p>
+        <table>
+            <tr>
+            <td align="left" valign="middle">
+                <img src="{icon_img}">
+            </td>
+            <td valign="middle" align="center">
+                &nbsp;&larr; icon to look for
+            </td>
+            </tr>
+        </table>"""
 
     showInfo(info_text, title="Manually add/edit/remove", textFormat="rich")
 
@@ -154,12 +161,13 @@ def show_custom_db_path_dialog():
 
     user_pitch_csv_path = os.path.join(get_plugin_dir_path(), "user_pitchdb.csv")
 
-    custom_db_text = (
-        "You can extend and overwrite pitch accent patterns using the"
-        f" file '{user_pitch_csv_path}'. The file has to be three columns (expression,"
-        " reading, pitch accent pattern) separated by TAB characters."
-    )
-    showInfo(custom_db_text, title="Custom DB path")
+    custom_db_text = f"""\
+        <p>You can extend and overwrite pitch accent patterns using the
+        file <code>{user_pitch_csv_path}</code>. The file has to be three
+        columns (expression reading, pitch accent pattern) separated by
+        <kbd>TAB</kbd> characters.
+        """
+    showInfo(custom_db_text, title="Custom DB path", textFormat="rich")
 
 
 def remove_user_pitch_dialog():
@@ -197,11 +205,10 @@ def remove_pitch_dialog(user_set=False):
 
     # remove from notes
     n_adone, n_updt = remove_pitch(note_ids, del_idx, user_set)
-    report_text = (
-        "done :)\n"
-        f"skipped {n_adone} notes w/o accent annotation\n"
-        f"updated {n_updt} notes"
-    )
+    report_text = f"""\
+        done :)
+        skipped {n_adone} notes w/o accent annotation
+        updated {n_updt} notes"""
     showInfo(report_text, title="Bulk remove results")
 
 
@@ -215,15 +222,12 @@ def set_pitch_manually_dialog(editor):
         return
 
     # get user input
-    hira, hira_succeeded = getText("Enter the reading to be set. (Example: はな)")
+    hira, hira_succeeded = getText("Enter the reading to be set.\nExample: はな")
     if not hira_succeeded:
         return
 
     LH_patt, LH_patt_succeeded = getText(
-        (
-            "Enter the pitch accent pattern as a sequence of 'H's and 'L's. "
-            "(Example: LHL)"
-        )
+        "Enter the pitch accent pattern as a sequence of 'H's and 'L's.\nExample: LHL"
     )
     if not LH_patt_succeeded:
         return
@@ -307,7 +311,10 @@ def set_pitch(editor, hira, LH_patt):
         separator = "<br><hr><br>"
     else:
         separator = ""
-    new_field_val = f"{old_field_val_clean}<!-- user_accent_start -->{separator}{svg}<!-- user_accent_end -->"
+    new_field_val = (
+        f"{old_field_val_clean}"
+        f"<!-- user_accent_start -->{separator}{svg}<!-- user_accent_end -->"
+    )
     if hira == "" and LH_patt == "":
         new_field_val = old_field_val_clean
 
