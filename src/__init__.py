@@ -67,7 +67,7 @@ def about_dialog() -> None:
         </center>"""
 
     showText(
-        info_text,
+        dedent(info_text),
         title="About",
         type="html",
         minWidth=200,
@@ -154,7 +154,7 @@ def add_user_pitch_dialog():
             </tr>
         </table>"""
 
-    showInfo(info_text, title="Manually add/edit/remove", textFormat="rich")
+    showInfo(dedent(info_text), title="Manually add/edit/remove", textFormat="rich")
 
 
 def show_custom_db_path_dialog():
@@ -167,7 +167,7 @@ def show_custom_db_path_dialog():
         file <code>{user_pitch_csv_path}</code>. The file has to be three
         columns (expression, reading, pitch accent pattern) separated by
         <kbd>TAB</kbd> characters.</p>"""
-    showInfo(custom_db_text, title="Custom DB path", textFormat="rich")
+    showInfo(dedent(custom_db_text), title="Custom DB path", textFormat="rich")
 
 
 def remove_user_pitch_dialog():
