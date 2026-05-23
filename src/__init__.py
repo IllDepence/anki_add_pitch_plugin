@@ -19,6 +19,7 @@ import sys
 from aqt import mw, gui_hooks
 from aqt.utils import showInfo, showText, getText
 from aqt.qt import QMenu
+from textwrap import dedent
 from ._version import __version__
 from ._constants import re_all_hira_patt
 from .util import (
@@ -43,35 +44,30 @@ from .types import HiraganaStr
 def about_dialog() -> None:
     """Popup displaying information about the add-on."""
 
+    contrib: str = "<br>".join(__credits__)
     gh_link: str = "https://github.com/IllDepence/anki_add_pitch_plugin"
     aw_link: str = "https://ankiweb.net/shared/info/148002038"
     license_link: str = gh_link + "/blob/master/LICENSE"
 
-    info_text: str = (
-        "<center>"
-        "<h3>Japanese Pitch Accent</h3>"
-        "<p><b>Version</b><br>{version}</p>"
-        "<p><b>License</b><br>"
-        '<a href="{license_link}">{license_name}</a>'
-        "</p>"
-        "<p><b>Maintainer</b><br>{author}</p>"
-        "<p><b>Contributors</b><br>{contrib}</p>"
-        '<p><a href="{gh_link}">GitHub</a>'
-        "&nbsp;<b>&middot;</b>&nbsp;"
-        '<a href="{aw_link}">AnkiWeb</a></p>'
-        "</center>"
-    ).format(
-        version=__version__,
-        license_link=license_link,
-        license_name=__license__,
-        author=__author__,
-        contrib="<br>".join(__credits__),
-        gh_link=gh_link,
-        aw_link=aw_link,
-    )
+    info_text: str = f"""\
+        <center>
+        <h3>Japanese Pitch Accent</h3>
+        <p><b>Version</b><br>{__version__}</p>
+        <p>
+            <b>License</b><br>
+            <a href="{license_link}">{__license__}</a>
+        </p>
+        <p><b>Maintainer</b><br>{__author__}</p>
+        <p><b>Contributors</b><br>{contrib}</p>
+        <p>
+            <a href="{gh_link}">GitHub</a>
+            &nbsp;<b>&middot;</b>&nbsp;
+            <a href="{aw_link}">AnkiWeb</a>
+        </p>
+        </center>"""
 
     showText(
-        info_text,
+        dedent(info_text),
         title="About",
         type="html",
         minWidth=200,
@@ -114,14 +110,13 @@ def add_pitch_dialog() -> None:
     nf_lst, n_updt, n_adone, n_sfail = add_pitch(
         acc_dict, note_ids, expr_idx, rdng_idx, out_idx
     )
-    report_text = (
-        "done :)\n"
-        "skipped {} already annotated notes\n"
-        "updated {} notes\n"
-        "failed to generate {} annotations\n"
-        "could not find {} expressions"
-    ).format(n_adone, n_updt, n_sfail, len(nf_lst))
-    showInfo(report_text, title="Bulk add results")
+    report_text = f"""\
+        done :)
+        skipped {n_adone} already annotated notes
+        updated {n_updt} notes
+        failed to generate {n_sfail} annotations
+        could not find {len(nf_lst)} expressions"""
+    showInfo(dedent(report_text), title="Bulk add results")
 
 
 def add_user_pitch_dialog():
@@ -142,18 +137,24 @@ def add_user_pitch_dialog():
         "CByPSIxLjYyNSIgLz4KPC9zdmc+Cg=="
     )
 
-    info_text = (
-        "<p>When adding or editing cards, click the pitch accent icon located "
-        "on the right hand side of the text formatting buttons to manually "
-        "insert, overwrite, or remove the pitch accent.<br></p>"
-        "<table><tr>"
-        '<td align="left" valign="middle">'
-        '<img src="{}"></td>'
-        '<td valign="middle" align="center">&nbsp;&larr; icon to look for</td>'
-        "</tr></table>"
-    ).format(icon_img)
+    info_text = f"""\
+        <p>
+            When adding or editing cards, click the pitch accent icon located
+            on the right hand side of the text formatting buttons to manually
+            insert, overwrite, or remove the pitch accent.<br>
+        </p>
+        <table>
+            <tr>
+            <td align="left" valign="middle">
+                <img src="{icon_img}">
+            </td>
+            <td valign="middle" align="center">
+                &nbsp;&larr; icon to look for
+            </td>
+            </tr>
+        </table>"""
 
-    showInfo(info_text, title="Manually add/edit/remove", textFormat="rich")
+    showInfo(dedent(info_text), title="Manually add/edit/remove", textFormat="rich")
 
 
 def show_custom_db_path_dialog():
@@ -161,12 +162,12 @@ def show_custom_db_path_dialog():
 
     user_pitch_csv_path = os.path.join(get_plugin_dir_path(), "user_pitchdb.csv")
 
-    custom_db_text = (
-        "You can extend and overwrite pitch accent patterns using the"
-        " file '{}'. The file has to be three columns (expression,"
-        " reading, pitch accent pattern) separated by TAB characters."
-    ).format(user_pitch_csv_path)
-    showInfo(custom_db_text, title="Custom DB path")
+    custom_db_text = f"""\
+        <p>You can extend and overwrite pitch accent patterns using the
+        file <code>{user_pitch_csv_path}</code>. The file has to be three
+        columns (expression, reading, pitch accent pattern) separated by
+        <kbd>TAB</kbd> characters.</p>"""
+    showInfo(dedent(custom_db_text), title="Custom DB path", textFormat="rich")
 
 
 def remove_user_pitch_dialog():
@@ -204,10 +205,11 @@ def remove_pitch_dialog(user_set=False):
 
     # remove from notes
     n_adone, n_updt = remove_pitch(note_ids, del_idx, user_set)
-    report_text = (
-        "done :)\n" "skipped {} notes w/o accent annotation\n" "updated {} notes"
-    ).format(n_adone, n_updt)
-    showInfo(report_text, title="Bulk remove results")
+    report_text = f"""\
+        done :)
+        skipped {n_adone} notes w/o accent annotation
+        updated {n_updt} notes"""
+    showInfo(dedent(report_text), title="Bulk remove results")
 
 
 def set_pitch_manually_dialog(editor):
@@ -220,15 +222,12 @@ def set_pitch_manually_dialog(editor):
         return
 
     # get user input
-    hira, hira_succeeded = getText("Enter the reading to be set. (Example: はな)")
+    hira, hira_succeeded = getText("Enter the reading to be set.\nExample: はな")
     if not hira_succeeded:
         return
 
     LH_patt, LH_patt_succeeded = getText(
-        (
-            "Enter the pitch accent pattern as a sequence of 'H's and 'L's. "
-            "(Example: LHL)"
-        )
+        "Enter the pitch accent pattern as a sequence of 'H's and 'L's.\nExample: LHL"
     )
     if not LH_patt_succeeded:
         return
@@ -278,7 +277,7 @@ def set_pitch_automatically(editor):
     patt = get_acc_patt(expr_guess, reading_guess, [acc_dict])
     if not patt:
         showInfo(
-            "Could not find pitch for expression “{}”".format(expr_guess),
+            f"Could not find pitch for expression “{expr_guess}”",
             title="Card parsing failure",
         )
         return
@@ -312,8 +311,9 @@ def set_pitch(editor, hira, LH_patt):
         separator = "<br><hr><br>"
     else:
         separator = ""
-    new_field_val = ("{}<!-- user_accent_start -->{}{}<!-- user_accent_end -->").format(
-        old_field_val_clean, separator, svg
+    new_field_val = (
+        f"{old_field_val_clean}"
+        f"<!-- user_accent_start -->{separator}{svg}<!-- user_accent_end -->"
     )
     if hira == "" and LH_patt == "":
         new_field_val = old_field_val_clean

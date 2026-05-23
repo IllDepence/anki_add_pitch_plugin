@@ -429,9 +429,10 @@ def add_pitch(
         else:
             separator = ""
         # extend and save note
-        note[output_fld] = ("{}<!-- accent_start -->{}{}<!-- accent_end -->").format(
-            note[output_fld], separator, svg
-        )  # add svg
+        note[output_fld] = (
+            f"{note[output_fld]}"
+            f"<!-- accent_start -->{separator}{svg}<!-- accent_end -->"
+        )
         mw.col.update_note(note)
         num_updated += 1
     return not_found_list, num_updated, num_already_done, num_svg_fail
@@ -451,9 +452,7 @@ def remove_pitch(
     else:
         tag_prefix = ""
     acc_patt = re.compile(
-        r"<!-- {}accent_start -->.+<!-- {}accent_end -->".format(
-            tag_prefix, tag_prefix
-        ),
+        rf"<!-- {tag_prefix}accent_start -->.+<!-- {tag_prefix}accent_end -->",
         re.S,
     )
     num_updated = 0
@@ -465,7 +464,7 @@ def remove_pitch(
         note = mw.col.get_note(nid)
         del_fld = note.keys()[del_idx]
         # check for cards w/o accent illustrations
-        if " {}accent_start".format(tag_prefix) not in note[del_fld]:
+        if f" {tag_prefix}accent_start" not in note[del_fld]:
             # has no pitch accent illustration
             num_already_done += 1
             continue

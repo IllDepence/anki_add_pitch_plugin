@@ -2,7 +2,6 @@
 
 import re
 
-
 re_ja_patt = re.compile(
     r"["
     r"\u3041-\u3096"  # hiragana
