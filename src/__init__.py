@@ -165,7 +165,7 @@ def show_custom_db_path_dialog():
     custom_db_text = f"""\
         <p>You can extend and overwrite pitch accent patterns using the
         file <code>{user_pitch_csv_path}</code>. The file has to be three
-        columns (expression reading, pitch accent pattern) separated by
+        columns (expression, reading, pitch accent pattern) separated by
         <kbd>TAB</kbd> characters.</p>"""
     showInfo(custom_db_text, title="Custom DB path", textFormat="rich")
 
