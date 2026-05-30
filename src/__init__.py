@@ -35,6 +35,7 @@ from .util import (
     select_note_fields_del,
     get_plugin_dir_path,
     get_acc_patt,
+    add_pitch_to_field_content,
     clean_japanese_from_note_field,
 )
 from .draw_pitch import pitch_svg
@@ -307,14 +308,8 @@ def set_pitch(editor, hira, LH_patt):
 
     # generate SVG
     svg = pitch_svg(hira, LH_patt)
-    if len(old_field_val_clean) > 0:
-        separator = "<br><hr><br>"
-    else:
-        separator = ""
-    new_field_val = (
-        f"{old_field_val_clean}"
-        f"<!-- user_accent_start -->{separator}{svg}<!-- user_accent_end -->"
-    )
+    # add pitch to field
+    new_field_val = add_pitch_to_field_content(old_field_val_clean, svg, True)
     if hira == "" and LH_patt == "":
         new_field_val = old_field_val_clean
 

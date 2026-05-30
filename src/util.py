@@ -21,6 +21,7 @@ from .types import (
     PitchAccentNotationPerMora,
     ReadingWithPitchPattern,
     AccentDict,
+    SvgStr,
 )
 from ._constants import (
     re_ja_patt,
@@ -374,6 +375,36 @@ def get_acc_patt(
     return None
 
 
+def add_pitch_to_field_content(
+    field_content: str, pitch_svg: SvgStr, user_set: bool
+) -> str:
+    """Combines the existing field_content with the pitch_svg and returns the result.
+
+    To enable automated removal, pitch_svg is surrounded with HTML comment markers.
+    If field_content is non-empty, a separator is added inbetween it and the pitch annotation.
+
+    This function assumes there are no existing pitch annotations in field_content.
+    Skipping or prior removal must be implemented in the calling method."""
+
+    if len(field_content) > 0:
+        sep_cls = 'class="pitch_separator"'
+        separator = f"<br {sep_cls}><hr {sep_cls}><br {sep_cls}>"
+    else:
+        separator = ""
+
+    if user_set:
+        tag_prefix = "user_"
+    else:
+        tag_prefix = ""
+
+    return (
+        f"{field_content}"
+        f"<!-- {tag_prefix}accent_start -->"
+        f"{separator}{pitch_svg}"
+        f"<!-- {tag_prefix}accent_end -->"
+    )
+
+
 def add_pitch(
     acc_dict: AccentDict,
     note_ids: list[NoteId],
@@ -421,18 +452,8 @@ def add_pitch(
         LH_patt: PitchAccentNotationPerMora = char_lvl_patt_to_mora_lvl_patt(LlHh_patt)
         # generate SVG for accent pattern
         svg = pitch_svg(hira, LH_patt)
-        if not svg:
-            num_svg_fail += 1
-            continue
-        if len(note[output_fld]) > 0:
-            separator = "<br><hr><br>"
-        else:
-            separator = ""
         # extend and save note
-        note[output_fld] = (
-            f"{note[output_fld]}"
-            f"<!-- accent_start -->{separator}{svg}<!-- accent_end -->"
-        )
+        note[output_fld] = add_pitch_to_field_content(note[output_fld], svg, False)
         mw.col.update_note(note)
         num_updated += 1
     return not_found_list, num_updated, num_already_done, num_svg_fail
