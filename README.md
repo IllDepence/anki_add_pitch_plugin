@@ -1,13 +1,17 @@
-Anki addon to automatically add pitch accent information to cards.
+# Japanese Pitch Accent
+
+An Anki addon to automatically add pitch accent information to cards.
+
+**[&gt; AnkiWeb &lt;](https://ankiweb.net/shared/info/148002038)**
 
 ### Features
 * modes
     * bulk add and remove
     * manual add/edit/remove for single cards
 * accent illustrations
-    * pitch accent illustrations are created as SVG; no image files involved (also [available online](https://illdepence.github.io/SVG_pitch/))
+    * pitch accent illustrations are created as SVG; no image files involved and [CSS stylable](doc/styling.md)
     * illustrations include pitch annotations as well as aligned kana
-    * each accent position corresponds to one mora, 拗音 (e.g. きゃ) are automatically merged
+    * each accent position corresponds to one mora; 拗音 (e.g. きゃ) are automatically merged
 * disambiguation
     * when an expression has several possible readings (e.g. 汚れ) the script tries to determine which one is used by inspecting the reading field of the card
     * if a word is mostly katakana, katakana instead of hiragana are used in the illustration
