@@ -387,7 +387,8 @@ def add_pitch_to_field_content(
     Skipping or prior removal must be implemented in the calling method."""
 
     if len(field_content) > 0:
-        separator = '<span class="pitch_separator"><br><hr><br></span>'
+        sep_cls = 'class="pitch_separator"'
+        separator = f"<br {sep_cls}><hr {sep_cls}><br {sep_cls}>"
     else:
         separator = ""
 
