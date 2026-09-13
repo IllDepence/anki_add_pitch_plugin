@@ -318,8 +318,9 @@ def set_pitch(editor, hira, LH_patt):
         data[editor.web.editor.currentField][0],  # leave field name as is
         new_field_val,  # update field value
     )
-    js = "setFields(%s); setFonts(%s); focusField(%s); setNoteId(%s)" % (
-        json.dumps(data),
+    js = "setFields(%s, %s); setFonts(%s); focusField(%s); setNoteId(%s)" % (
+        json.dumps([kv[0] for kv in data]),  # field names
+        json.dumps([kv[1] for kv in data]),  # fiels values
         json.dumps(editor.fonts()),
         json.dumps(editor.web.editor.currentField),
         json.dumps(editor.note.id),
