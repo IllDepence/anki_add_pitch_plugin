@@ -245,7 +245,7 @@ def set_pitch_automatically(editor):
     expr_guess = None
     reading_guess = None
     for fld, val_unesc in editor.note.items():
-        val = editor.mw.col.media.escapeImages(val_unesc)
+        val = editor.mw.col.media.escape_images(val_unesc)
         ja_expr = clean_japanese_from_note_field(val)
         if ja_expr is None:
             # no Japanese, next
@@ -296,7 +296,7 @@ def set_pitch(editor, hira, LH_patt):
 
     # get note data
     data = [
-        (fld, editor.mw.col.media.escapeImages(val)) for fld, val in editor.note.items()
+        (fld, editor.mw.col.media.escape_images(val)) for fld, val in editor.note.items()
     ]
 
     # remove existing patt
