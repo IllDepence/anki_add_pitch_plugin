@@ -2,7 +2,7 @@
 
 **Compatibility Note**
 * below is valid for annotations added with version 0.9.3 and above
-* for annotations added with earlier versions, the separator elements `hr` and `br` do not have a `pitch_separator` class, so you will have to make due with CSS pseudo classes [:first-of-type](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Selectors/:first-of-type) / [nth-of-type()](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Selectors/:nth-of-type) [:last-of-type](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Selectors/:last-of-type)
+* for annotations added with earlier versions, the separator elements `hr` and `br` do not have a `pitch_separator` class, so you will have to make due with CSS pseudo classes [:first-of-type](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Selectors/:first-of-type) / [nth-of-type()](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Selectors/:nth-of-type) / [:last-of-type](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Selectors/:last-of-type)
 
 ## Quick guide / examples
 
