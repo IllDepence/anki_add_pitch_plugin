@@ -58,6 +58,8 @@ If you’re using **night mode**, use the following style to invert the pitch ac
 }
 ```
 
+For further details on styling, see [Pitch accent annotation styling](https://github.com/IllDepence/anki_add_pitch_plugin/blob/master/doc/styling.md) on Github.
+
 ---
 
 # Limitations
