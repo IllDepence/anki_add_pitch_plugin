@@ -2,6 +2,7 @@
 
 **Compatibility Note**
 * if your annotations have been added with version 0.9.3 and above, use the [non-legacy documentation](styling.md) instead
+* note that the screenshots in this guide show slightly different CSS rules; use the rules given in the text
 
 ## Prerequisite
 
