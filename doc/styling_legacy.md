@@ -5,7 +5,7 @@
 
 ## Prerequisite
 
-If your card template contains `<hr>` or `<br>` tags, surround the field in which the pitch accent annotation is shown in a `<span>` with `id="pitch"`. If the field name is, for example, “Reading” it’ll look like this: `<span id="pitch">{{Reading}}</span>`. Then, for every CSS rule involving `hr` or `br` shown in the following add `span#pitch ` before if (e.g. `hr { ... }` → `span#pitch hr { ... }`).
+If your card template contains `<hr>` or `<br>` tags, put a `<span>` with `id="pitch"` around the field in which the pitch accent annotation is shown. If, for example, the field name is “Reading”, it will look like this: `<span id="pitch">{{Reading}}</span>`. Then, for every CSS rule involving `hr` or `br` shown in the following, add `span#pitch ` before if (e.g. `hr { ... }` → `span#pitch hr { ... }`).
 
 ## Quick guide / examples
 
