@@ -1,8 +1,11 @@
-# Pitch accent annotation styling
+# Pitch accent annotation styling (legacy version)
 
 **Compatibility Note**
-* below is valid for annotations added with version 0.9.3 and above
-* for annotations added with earlier versions, refer to the [legacy documentation](styling_legacy.md)
+* if your annotations have been added with version 0.9.3 and above, use the [non-legacy documentation](styling.md) instead
+
+## Prerequisite
+
+If your card template contains `<hr>` or `<br>` tags, surround the field in which the pitch accent annotation is shown in a `<span>` with `id="pitch"`. If the field name is, for example, “Reading” it’ll look like this: `<span id="pitch">{{Reading}}</span>`. Then, for every CSS rule involving `hr` or `br` shown in the following add `span#pitch ` before if (e.g. `hr { ... }` → `span#pitch hr { ... }`).
 
 ## Quick guide / examples
 
@@ -21,7 +24,7 @@ Tools → Manage Note Types → (select note type) → Cards → Styling → (en
 hide only
 
 ```css
-hr.pitch_separator {
+hr {
     visibility: hidden;
 }
 ```
@@ -29,7 +32,7 @@ hr.pitch_separator {
 remove
 
 ```css
-hr.pitch_separator {
+hr {
     display: none;
 }
 ```
@@ -45,9 +48,9 @@ The following elements are added to cards.
 If the field you add your annotation to already has some content (e.g. the word's reading), a separator is added before the pitch accent annotation. The separator looks as follows.
 
 ```html
-<br class="pitch_separator">
-<hr class="pitch_separator">
-<br class="pitch_separator">
+<br>
+<hr>
+<br>
 ```
 
 #### Pitch annotation
@@ -73,7 +76,7 @@ Without styling, the separator looks like shown below. A vertical line (`hr`) an
 You can reduce the spacing by removing the line break (`br`) after the line.
 
 ```css
-br.pitch_separator:last-of-type {
+br:last-of-type {
     display: none;
 }
 ```
@@ -83,7 +86,7 @@ br.pitch_separator:last-of-type {
 You can remove the line.
 
 ```css
-hr.pitch_separator {
+hr {
     display: none;
 }
 ```
@@ -93,10 +96,10 @@ hr.pitch_separator {
 You can remove the line and the line break after it.
 
 ```css
-hr.pitch_separator {
+hr {
     display: none;
 }
-br.pitch_separator:last-of-type {
+br:last-of-type {
     display: none;
 }
 ```
@@ -106,10 +109,10 @@ br.pitch_separator:last-of-type {
 You can remove the line and all line breaks, making the annotation render inline.
 
 ```css
-hr.pitch_separator {
+hr {
     display: none;
 }
-br.pitch_separator {
+br {
     display: none;
 }
 ```
@@ -119,7 +122,7 @@ br.pitch_separator {
 You can style the line in whatever way you like.
 
 ```css
-hr.pitch_separator {
+hr {
     border: .15rem dashed rgba(255, 50, 0, 0.5);
     border-radius: .75rem;
     background-color: rgba(0, 50, 255, 0.2);
