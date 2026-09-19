@@ -1,28 +1,11 @@
 # Development Tasks
 
 * Improve maintainability
-    * Add type hints (WIP)
     * Add unit tests
     * Add E2E tests
 * Work on feature requests
 
 # Feature requests
-
-## Dividing line opt-out
-
-Option to not add a dividing line (`<hr>`) above accent illustration.
-
-**Current behavior**
-* Field empty -> no line
-* Field non empty -> add line (prepends `<br><hr><br>`)
-
-**How to address**
-* (a) Make separator hideable via CSS (put inside a span with a class, hide with `display: none`)
-    * `+` Makes it possible to quickly change between showing/hiding separators without the need not re-generate accent illustrations
-* (b) Add option toggle to add/not add separator
-    * `-` Would require development of user preferences
-
--> go with option (a)
 
 ## Remember choice of bulk add fields
 
