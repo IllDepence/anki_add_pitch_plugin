@@ -24,7 +24,7 @@ An Anki addon to automatically add pitch accent information to cards.
 
 ## Development
 
-Pull requests are welcome!
+Pull requests are welcome!  
 In [doc/development.md](doc/development.md) you can find notes on things to do, as well as thoughts on common feature requests.
 
 ### Notes
