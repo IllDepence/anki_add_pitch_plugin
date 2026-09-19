@@ -38,7 +38,7 @@ Annotations sync to mobile (e.g. AnkiDroid) as well as AnkiWeb
 ![](https://raw.githubusercontent.com/IllDepence/anki_add_pitch_plugin/master/doc/ankiweb_img/plattforms.jpg)
 
 Annotations are customizable via CSS  
-![](https://raw.githubusercontent.com/IllDepence/anki_add_pitch_plugin/master/doc/ankiweb_img/css.jpg)
+![](https://raw.githubusercontent.com/IllDepence/anki_add_pitch_plugin/master/doc/ankiweb_img/css.gif)
 
 **Example usage**
 
