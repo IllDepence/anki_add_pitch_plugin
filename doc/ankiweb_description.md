@@ -40,15 +40,9 @@ Annotations sync to mobile (e.g. AnkiDroid) as well as AnkiWeb
 Annotations are customizable via CSS  
 ![](https://raw.githubusercontent.com/IllDepence/anki_add_pitch_plugin/master/doc/ankiweb_img/css.gif)
 
-**Example usage**
+You can also use CSS to *remove the divider line*.
 
-```css
-svg.pitch { height: 150px; width: auto; }
-svg.pitch text { font-weight: bold !important; }
-svg.pitch > path { stroke: #fa7 !important; }
-svg.pitch > circle[r="5"] { fill: #fa7 !important; }
-svg.pitch > circle[r="3.25"] { fill: #cf9 !important; }
-```
+For details, look at the  **[styling documentation](https://github.com/IllDepence/anki_add_pitch_plugin/blob/master/doc/styling.md)** on Github.
 
 If you’re using **night mode**, use the following style to invert the pitch accent color.
 
@@ -58,7 +52,7 @@ If you’re using **night mode**, use the following style to invert the pitch ac
 }
 ```
 
-For further details on styling, see [Pitch accent annotation styling](https://github.com/IllDepence/anki_add_pitch_plugin/blob/master/doc/styling.md) on Github.
+
 
 ---
 
@@ -84,7 +78,7 @@ For further details on styling, see [Pitch accent annotation styling](https://gi
 
 (details: [source code](https://github.com/IllDepence/anki_add_pitch_plugin))
 
-2026/09/14 -- Fix pitch adding in card editor on Anki 26.08 upwards. Make it more easy to style/hide the separator line (*only applies to annotations added with this or later versions; [details here](https://github.com/IllDepence/anki_add_pitch_plugin/blob/a58e2a732f14d1397b6db306ea0151200890b720/doc/styling.md#quick-guide--examples))  
+2026/09/14 -- Fix pitch adding in card editor on Anki 26.08 upwards. Make it more easy to style/hide the divider line (*only applies to annotations added with this or later versions; [details here](https://github.com/IllDepence/anki_add_pitch_plugin/blob/a58e2a732f14d1397b6db306ea0151200890b720/doc/styling.md#quick-guide--examples))  
 2023/05/07 -- Add function to automatically set single pitch. Make add-on Qt6 compatible. Various stability, performance and UI improvements.  
 2022/03/26 -- Fix bugs concerning functionality to manually add/edit/remove annotations. (Thanks kclisp)  
 2022/01/23 -- Update pitch accent DB (from roughly 100k to 200k entries).  
