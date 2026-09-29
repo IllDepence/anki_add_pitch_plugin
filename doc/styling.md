@@ -60,13 +60,13 @@ The pitch accent annotation is an `svg` node with class "pitch".
 </svg>
 ```
 
-Its conents are `cicle` and `path` nodes for the pitch indication, and `text` nodes for the kana below.
+Its contents are `cicle` and `path` nodes for the pitch indication, and `text` nodes for the kana below.
 
 ### Styling
 
 #### Separator
 
-Without styling, the separator looks like shown below. A vertical line (`hr`) and some spacing (`br`).
+Without styling, the separator looks like shown below. A horizontal line (`hr`) and some spacing (`br`).
 
 ![](img/sep_style_none.png)
 
