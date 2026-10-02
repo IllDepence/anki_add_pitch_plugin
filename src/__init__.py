@@ -17,7 +17,7 @@ import os
 import re
 import sys
 from aqt import mw, gui_hooks
-from aqt.utils import showInfo, showText, getText
+from aqt.utils import showInfo, showText, getText, askUser
 from aqt.qt import QMenu
 from textwrap import dedent
 from ._version import __version__
@@ -37,6 +37,8 @@ from .util import (
     get_acc_patt,
     add_pitch_to_field_content,
     clean_japanese_from_note_field,
+    find_nightmode_css,
+    add_nightmode_css
 )
 from .draw_pitch import pitch_svg
 from .types import HiraganaStr
@@ -119,6 +121,22 @@ def add_pitch_dialog() -> None:
         could not find {len(nf_lst)} expressions"""
     showInfo(dedent(report_text), title="Bulk add results")
 
+    nightmode_css_exists = find_nightmode_css(note_type_id)
+    if nightmode_css_exists:
+        return
+    add_nightmode_style_decision = askUser(
+"It seems that the card type does not have a dark mode CSS for pitch accents. \
+Adding one would improve the visibility of the pitch accents diagrams when using dark mode. \
+Would you like to add dark mode CSS to the card type?", title="dark mode support")
+    if add_nightmode_style_decision:
+        if add_nightmode_css(note_type_id):
+            showInfo("Style added successfully", title="Add style result")
+        else:
+            showInfo("Error: failed", title="Add style result")
+
+
+
+            
 
 def add_user_pitch_dialog():
     """Popup explaining how to manually set pitch accent illustrations."""

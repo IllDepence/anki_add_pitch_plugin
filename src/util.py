@@ -552,3 +552,37 @@ def clean_orth(orth: str) -> ExpressionStr:
     #  the future)
     orth = orth.replace("…", "〜")
     return ExpressionStr(orth)
+
+def find_nightmode_css(note_type_id: NotetypeId) -> bool | None:
+    """Check if a note type has existing nightmode css styling.
+
+    Returns True is found, None if not a valid notetype ID.
+    """
+    if not (mw.col and mw.col.models):
+        return None
+
+    target_note_type: NotetypeDict | None = mw.col.models.get(note_type_id)
+
+    if not target_note_type:
+        return None
+
+    note_type_css: str = target_note_type["css"]
+
+    return any((".pitch" in line or "circle" in line or "path" in line or "text" in line) and ".nightMode" in line for line in note_type_css.splitlines())
+
+def add_nightmode_css(note_type_id: NotetypeId) -> bool:
+    """Adds default night mode style to a card type.
+
+    Return True on success
+    """
+    if not (mw.col and mw.col.models):
+        return False
+
+    target_note_type: NotetypeDict | None = mw.col.models.get(note_type_id)
+
+    if not target_note_type:
+        return False
+
+    target_note_type["css"] += "\n.nightMode svg.pitch {\n    filter:invert()\n}"
+    mw.col.models.save(target_note_type)
+    return True
