@@ -118,7 +118,7 @@ def select_deck_id(msg: str) -> DeckId | None:
     if not mw.col:
         return None
 
-    decks = mw.col.decks.all_names_and_ids(include_filtered = False)
+    decks = mw.col.decks.all_names_and_ids(include_filtered=False)
     choices = [d.name for d in decks]
     choice_idx = customChooseList(msg, choices)
     if choice_idx is None:
