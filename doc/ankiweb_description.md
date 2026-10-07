@@ -78,6 +78,7 @@ If you’re using **night mode**, use the following style to invert the pitch ac
 
 (details: [source code](https://github.com/IllDepence/anki_add_pitch_plugin))
 
+2026/10/07 -- List decks in alphabetical order. (Thanks snow1555)  
 2026/09/14 -- Fix pitch adding in card editor on Anki 26.08 upwards. Make it more easy to style/hide the divider line (*only applies to annotations added with this or later versions; [details here](https://github.com/IllDepence/anki_add_pitch_plugin/blob/a58e2a732f14d1397b6db306ea0151200890b720/doc/styling.md#quick-guide--examples))  
 2023/05/07 -- Add function to automatically set single pitch. Make add-on Qt6 compatible. Various stability, performance and UI improvements.  
 2022/03/26 -- Fix bugs concerning functionality to manually add/edit/remove annotations. (Thanks kclisp)  
