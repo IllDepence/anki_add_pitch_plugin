@@ -118,12 +118,12 @@ def select_deck_id(msg: str) -> DeckId | None:
     if not mw.col:
         return None
 
-    decks = mw.col.decks.all()
-    choices = [d["name"] for d in decks]
+    decks = mw.col.decks.all_names_and_ids(include_filtered=False)
+    choices = [d.name for d in decks]
     choice_idx = customChooseList(msg, choices)
     if choice_idx is None:
         return None
-    return decks[choice_idx]["id"]
+    return DeckId(decks[choice_idx].id)
 
 
 def select_note_type_id(note_type_ids) -> NotetypeId | None:
